@@ -30,7 +30,8 @@ abstract class Program {
 
         DatabaseConfig.Initialize();
 
-        await Task.WhenAll(Task.Run(ConfigManager.InitializeCache),
+        await Task.WhenAll(
+            Task.Run(ConfigManager.InitializeCache),
             ConfigManager.InitializeMapInfos(),
             ConfigManager.InitializeChatCensorship(),
             Task.Run(async () => {

@@ -461,11 +461,7 @@ public partial class ComponentDeserializer : INodeTypeResolver, INodeDeserialize
         while (reader.Current != null && reader.Current is not MappingEnd) {
             if (reader.Current is not Scalar scalar) continue;
 
-            string key = scalar
-                             .Value[0]
-                             .ToString()
-                             .ToUpper() +
-                         scalar.Value[1..];
+            string key = scalar.Value[0].ToString().ToUpper() + scalar.Value[1..];
 
             PropertyInfo? info = expectedType.GetProperty(key);
 
@@ -503,8 +499,7 @@ public partial class ComponentDeserializer : INodeTypeResolver, INodeDeserialize
 
         if (nodeEvent is not Scalar scalar ||
             scalar.Value.Length < 2 ||
-            !MyRegex()
-                .IsMatch(scalar.Value)) return false;
+            !MyRegex().IsMatch(scalar.Value)) return false;
 
         string typeName = $"{scalar.Value[0].ToString().ToUpper()}{scalar.Value[1..]}Component";
 
@@ -536,25 +531,19 @@ public class Vector3TypeConverter : IYamlTypeConverter {
                 case "x":
                     parser.MoveNext();
 
-                    vector.X = float.Parse(parser.Consume<Scalar>()
-                        .Value);
-
+                    vector.X = float.Parse(parser.Consume<Scalar>().Value);
                     break;
 
                 case "y":
                     parser.MoveNext();
 
-                    vector.Y = float.Parse(parser.Consume<Scalar>()
-                        .Value);
-
+                    vector.Y = float.Parse(parser.Consume<Scalar>().Value);
                     break;
 
                 case "z":
                     parser.MoveNext();
 
-                    vector.Z = float.Parse(parser.Consume<Scalar>()
-                        .Value);
-
+                    vector.Z = float.Parse(parser.Consume<Scalar>().Value);
                     break;
             }
         }

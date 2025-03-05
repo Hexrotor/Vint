@@ -14,7 +14,7 @@ public class Runner(
     public async Task Run() {
         migrationRunner.MigrateUp();
 
-        await Task.WhenAny(
+        await await Task.WhenAny(
             staticServer.Start(),
             apiServer.Start(),
             gameServer.Start()

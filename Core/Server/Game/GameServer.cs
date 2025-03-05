@@ -83,7 +83,7 @@ public class GameServer(
         const int tps = 60;
         //const int maxTPS = 3;
 
-        Logger.Information("HPET enabled: {Value}", Stopwatch.IsHighResolution);
+        //Logger.Information("HPET enabled: {Value}", Stopwatch.IsHighResolution);
 
         TimeSpan targetDeltaTime = TimeSpan.FromSeconds(1d / tps);
         //TimeSpan maximumDeltaTime = TimeSpan.FromSeconds(1d / maxTPS);

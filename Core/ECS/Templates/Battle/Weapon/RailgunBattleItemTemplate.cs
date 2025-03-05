@@ -11,10 +11,9 @@ public class RailgunBattleItemTemplate : DiscreteWeaponTemplate {
         const string configPath = "garage/weapon/railgun";
         IEntity entity = Create(configPath, tank, tanker);
 
-        entity.AddComponent(new RailgunChargingWeaponComponent(1f));
+        entity.AddComponent<RailgunChargingWeaponComponent>(configPath);
         entity.AddComponent<DamageWeakeningByTargetComponent>(configPath);
         entity.AddComponent<RailgunComponent>();
-
         return entity;
     }
 }
