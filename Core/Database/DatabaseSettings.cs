@@ -12,8 +12,7 @@ public class DatabaseSettings : ILinqToDBSettings {
     public IEnumerable<IConnectionStringSettings> ConnectionStrings {
         get {
             yield return new ConnectionStringSettings("Vint",
-                DatabaseConfig.Get()
-                    .ConnectionString,
+                DatabaseConfig.Get().ConnectionString,
                 ProviderName.MariaDB10MySqlConnector);
         }
     }

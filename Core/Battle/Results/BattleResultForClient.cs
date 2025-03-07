@@ -61,8 +61,6 @@ public class BattleResultForClient {
     public BattleType MatchMakingModeType { get; }
     public PersonalBattleResultForClient? PersonalResult { get; }
 
-    public int DmScore => 0; // not used
-
     public static BattleResultForClient CreateForSpectator(Round round) =>
         new(round, true, null);
 

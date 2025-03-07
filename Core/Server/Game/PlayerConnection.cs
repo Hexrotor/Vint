@@ -35,6 +35,7 @@ using Vint.Core.ECS.Templates;
 using Vint.Core.ECS.Templates.Avatar;
 using Vint.Core.ECS.Templates.Containers;
 using Vint.Core.ECS.Templates.Covers;
+using Vint.Core.ECS.Templates.Details;
 using Vint.Core.ECS.Templates.Entrance;
 using Vint.Core.ECS.Templates.Gold;
 using Vint.Core.ECS.Templates.Graffiti;
@@ -483,8 +484,7 @@ public abstract class PlayerConnection(
             }
 
             case HullSkinMarketItemTemplate: {
-                long hullId = marketItem.GetComponent<ParentGroupComponent>()
-                    .Key;
+                long hullId = marketItem.GetComponent<ParentGroupComponent>().Key;
 
                 if (!await db.Hulls.AnyAsync(hull => hull.PlayerId == Player.Id && hull.Id == hullId)) return;
 
@@ -493,8 +493,7 @@ public abstract class PlayerConnection(
             }
 
             case WeaponSkinMarketItemTemplate: {
-                long weaponId = marketItem.GetComponent<ParentGroupComponent>()
-                    .Key;
+                long weaponId = marketItem.GetComponent<ParentGroupComponent>().Key;
 
                 if (!await db.Weapons.AnyAsync(weapon => weapon.PlayerId == Player.Id && weapon.Id == weaponId)) return;
 
@@ -513,8 +512,7 @@ public abstract class PlayerConnection(
             }
 
             case ShellMarketItemTemplate: {
-                long weaponId = marketItem.GetComponent<ParentGroupComponent>()
-                    .Key;
+                long weaponId = marketItem.GetComponent<ParentGroupComponent>().Key;
 
                 if (!await db.Weapons.AnyAsync(weapon => weapon.PlayerId == Player.Id && weapon.Id == weaponId)) return;
 
@@ -523,8 +521,7 @@ public abstract class PlayerConnection(
             }
 
             case ModuleCardMarketItemTemplate: {
-                long moduleId = marketItem.GetComponent<ParentGroupComponent>()
-                    .Key;
+                long moduleId = marketItem.GetComponent<ParentGroupComponent>().Key;
 
                 Module? module = Player.Modules.SingleOrDefault(module => module.Id == moduleId);
 
@@ -581,6 +578,21 @@ public abstract class PlayerConnection(
 
                 await db.InsertAsync(preset);
                 await Share(userItem);
+                break;
+            }
+
+            case DetailMarketItemTemplate: {
+                Detail? detail = await db.Details.SingleOrDefaultAsync(detail => detail.PlayerId == Player.Id && detail.Id == marketItem.Id);
+
+                if (detail == null) {
+                    detail = new Detail { PlayerId = Player.Id, Id = marketItem.Id, Count = amount };
+                    await db.InsertAsync(detail);
+                } else {
+                    detail.Count += amount;
+                    await db.UpdateAsync(detail);
+                }
+
+                mount = false;
                 break;
             }
 
@@ -1054,14 +1066,9 @@ public async Task UpdateDeserterStatus(bool roundEnded, bool hasEnemies) {
 
     public async Task CheckLoginRewards() {
         LoginRewardsComponent loginRewardsComponent = ConfigManager.GetComponent<LoginRewardsComponent>("login_rewards");
+        long battles = UserContainer.Entity.GetComponent<UserStatisticsComponent>().Statistics["BATTLES_PARTICIPATED"];
 
-        await using DbConnection db = new();
-        long battles = await db.Statistics
-            .Where(stats => stats.PlayerId == Player.Id)
-            .Select(stats => stats.BattlesParticipated)
-            .SingleOrDefaultAsync();
-
-        if (Player.NextLoginRewardTime > DateTimeOffset.UtcNow ||
+        if (Player.NextLoginRewardTime.Value > DateTimeOffset.UtcNow ||
             Player.LastLoginRewardDay >= loginRewardsComponent.MaxDay ||
             battles < loginRewardsComponent.BattleCountToUnlock) return;
 
@@ -1081,7 +1088,9 @@ public async Task UpdateDeserterStatus(bool roundEnded, bool hasEnemies) {
 
         Player.LastLoginRewardDay = day;
         Player.LastLoginRewardTime = DateTimeOffset.UtcNow;
+        Player.ResetNextLoginRewardTime();
 
+        await using DbConnection db = new();
         await db.Players
             .Where(p => p.Id == Player.Id)
             .Set(p => p.LastLoginRewardDay, Player.LastLoginRewardDay)

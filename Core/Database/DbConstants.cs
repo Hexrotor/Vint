@@ -5,6 +5,8 @@ public static class DbConstants {
     public const string Avatars = "Avatars";
     public const string Containers = "Containers";
     public const string Covers = "Covers";
+    public const string DailyBonusRedemptions = "DailyBonusRedemptions";
+    public const string Details = "Details";
     public const string DiscordLinks = "DiscordLinks";
     public const string Graffities = "Graffities";
     public const string Hulls = "Hulls";

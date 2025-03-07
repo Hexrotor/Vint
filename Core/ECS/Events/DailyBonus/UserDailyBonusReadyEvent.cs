@@ -1,0 +1,36 @@
+using LinqToDB;
+using Vint.Core.Database;
+using Vint.Core.Database.Models;
+using Vint.Core.ECS.Components.DailyBonus;
+using Vint.Core.ECS.Entities;
+using Vint.Core.Server.Game;
+using Vint.Core.Server.Game.Protocol.Attributes;
+
+namespace Vint.Core.ECS.Events.DailyBonus;
+
+[ProtocolId(1497606008075)]
+public class UserDailyBonusReadyEvent : IServerEvent {
+    public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
+        Player player = connection.Player;
+        IEntity user = connection.UserContainer.Entity;
+
+        DateTimeOffset nextDailyBonusTime = player.NextDailyBonusTime.Value;
+        DateTimeOffset lastDailyBonusTime = player.LastDailyBonusReceivingTime;
+
+        await user.AddComponent(new UserDailyBonusCycleComponent(player.DailyBonusCycle));
+        await user.AddComponent(new UserDailyBonusZoneComponent(player.DailyBonusZone));
+        await user.AddComponent(new UserDailyBonusNextReceivingDateComponent(nextDailyBonusTime, lastDailyBonusTime));
+
+        await using (DbConnection db = new()) {
+            List<int> receivedRewards = await db.DailyBonusRedemptions
+                .Where(redemption => redemption.PlayerId == player.Id &&
+                                     redemption.Cycle == player.DailyBonusCycle)
+                .Select(redemption => redemption.Code)
+                .ToListAsync();
+
+            await user.AddComponent(new UserDailyBonusReceivedRewardsComponent(receivedRewards));
+        }
+
+        await user.AddComponent<UserDailyBonusInitializedComponent>();
+    }
+}

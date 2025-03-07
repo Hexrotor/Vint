@@ -175,7 +175,6 @@ public class StaticServer {
     static InitConfig GenerateInitConfig(IPEndPoint localEndPoint) =>
         new(localEndPoint.Address,
             GameServer.Port,
-            "Vint-18",
             "https://cdn.vint.win/resources",
             $"http://{localEndPoint}/config",
             "https://cdn.vint.win/update/{BuildTarget}.yml",
@@ -184,7 +183,6 @@ public class StaticServer {
     readonly record struct InitConfig(
         IPAddress Host,
         ushort AcceptorPort,
-        string BundleDbVersion,
         string ResourcesUrl,
         string ConfigsUrl,
         string UpdateConfigUrl,
@@ -195,7 +193,6 @@ public class StaticServer {
 
             builder.AppendLine($"host: {Host}");
             builder.AppendLine($"acceptorPort: {AcceptorPort}");
-            builder.AppendLine($"bundleDbVersion: {BundleDbVersion}");
             builder.AppendLine($"resourcesUrl: {ResourcesUrl}");
             builder.AppendLine($"configsUrl: {ConfigsUrl}");
             builder.AppendLine($"updateConfigUrl: {UpdateConfigUrl}");

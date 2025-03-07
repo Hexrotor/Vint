@@ -18,7 +18,7 @@ public class RequestFriendshipByUserIdEvent(
 
     public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
         await using DbConnection db = new();
-        Player? player = db.Players.SingleOrDefault(player => player.Id == UserId);
+        Player? player = await db.Players.SingleOrDefaultAsync(player => player.Id == UserId);
 
         if (player == null) return;
 

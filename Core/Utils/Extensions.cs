@@ -123,9 +123,16 @@ public static class Extensions {
     }
 
     [Pure]
-    [LinqTunnel]
     public static bool HasDuplicatesBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector) =>
         HasDuplicates(source.Select(selector));
+
+    [Pure]
+    public static bool ContainsAll<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second) =>
+        !second.Except(first).Any();
+
+    [Pure]
+    public static bool ContainsAllBy<TSource, TKey>(this IEnumerable<TSource> first, IEnumerable<TSource> second, Func<TSource, TKey> selector) =>
+        ContainsAll(first.Select(selector), second.Select(selector));
 
     public static bool IsTeamMode(this BattleMode mode) => mode is
         BattleMode.TDM or

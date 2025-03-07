@@ -14,7 +14,7 @@ public class Runner(
     public async Task Run() {
         migrationRunner.MigrateUp();
 
-        await await Task.WhenAny(
+        await await Task.WhenAny( // Task.WhenAny returns Task<Task>, so we need to await both tasks
             staticServer.Start(),
             apiServer.Start(),
             gameServer.Start()

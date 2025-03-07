@@ -317,8 +317,7 @@ public static class GlobalEntities {
                 }
 
                 case "modules": {
-                    ModuleBehaviourType moduleBehaviourType = entity.GetComponent<ModuleBehaviourTypeComponent>()
-                        .BehaviourType;
+                    ModuleBehaviourType moduleBehaviourType = entity.GetComponent<ModuleBehaviourTypeComponent>().BehaviourType;
 
                     string[] configPathParts = entity.TemplateAccessor.ConfigPath!.Split('/');
 
@@ -374,8 +373,7 @@ public static class GlobalEntities {
                         }
 
                         case PresetUserItemTemplate: {
-                            foreach (Preset preset in db
-                                         .Presets
+                            foreach (Preset preset in db.Presets
                                          .LoadWith(preset => preset.Modules)
                                          .Where(preset => preset.PlayerId == player.Id)) {
                                 IEntity presetEntity = entity.Clone();
@@ -406,11 +404,8 @@ public static class GlobalEntities {
                         case SlotUserItemTemplate: {
                             string configPath = entity.TemplateAccessor!.ConfigPath!;
 
-                            Dictionary<Slot, ModuleBehaviourType> behaviourTypes = ConfigManager.GetComponent<SlotsTypesComponent>(configPath)
-                                .Slots;
-
-                            Dictionary<Slot, TankPartModuleType> tankParts = ConfigManager.GetComponent<SlotToTankPartComponent>(configPath)
-                                .Slots;
+                            Dictionary<Slot, ModuleBehaviourType> behaviourTypes = ConfigManager.GetComponent<SlotsTypesComponent>(configPath).Slots;
+                            Dictionary<Slot, TankPartModuleType> tankParts = ConfigManager.GetComponent<SlotToTankPartComponent>(configPath).Slots;
 
                             foreach (Slot slot in Enum.GetValues<Slot>()) {
                                 IEntity slotEntity = entity.Clone();
@@ -451,13 +446,20 @@ public static class GlobalEntities {
                 }
 
                 case "moduleCards": {
-                    long moduleId = entity.GetComponent<ParentGroupComponent>()
-                        .Key;
+                    long moduleId = entity.GetComponent<ParentGroupComponent>().Key;
 
                     Module? module = player.Modules.SingleOrDefault(module => module.Id == moduleId);
 
                     entity.AddGroupComponent<UserGroupComponent>(user);
                     entity.AddComponent(new UserItemCounterComponent(module?.Cards ?? 0));
+                    break;
+                }
+
+                case "details": {
+                    Detail? detail = db.Details.SingleOrDefault(detail => detail.PlayerId == player.Id && detail.Id == marketEntityId);
+
+                    entity.AddGroupComponent<UserGroupComponent>(user);
+                    entity.AddComponent(new UserItemCounterComponent(detail?.Count ?? 0));
                     break;
                 }
             }

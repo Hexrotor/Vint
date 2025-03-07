@@ -1,6 +1,6 @@
 dailyBonusCommonConfig:
-  receivingBonusIntervalInSeconds: 72000
-  # receivingBonusIntervalInSeconds: 2
+  receivingBonusIntervalSec: 72000
+  # receivingBonusIntervalSec: 2
   battleCountToUnlockDailyBonuses: 2
   premiumTimeSpeedUp: 3
 dailyBonusFirstCycle:
@@ -41,7 +41,7 @@ dailyBonusFirstCycle:
       code: 11
     - cryAmount: 220
       code: 12
-    - xcryAmount: 50
+    - xCryAmount: 50
       code: 13
     - code: 14
       detailReward:
@@ -75,7 +75,7 @@ dailyBonusFirstCycle:
       code: 25
     - cryAmount: 326
       code: 26
-    - xcryAmount: 50
+    - xCryAmount: 50
       code: 27
     - code: 28
       detailReward:
@@ -153,7 +153,7 @@ dailyBonusEndlessCycle:
       code: 25
     - cryAmount: 430
       code: 26
-    - xcryAmount: 20
+    - xCryAmount: 20
       code: 27
     - code: 28
       detailReward:

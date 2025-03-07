@@ -179,7 +179,7 @@ public class DiscordBot(
 
         ulong userId = userClient.CurrentUser.Id;
 
-        if (db.DiscordLinks.Any(dLink => dLink.UserId == userId)) return false;
+        if (await db.DiscordLinks.AnyAsync(dLink => dLink.UserId == userId)) return false;
 
         DiscordLink discordLink = new() {
             AccessToken = oAuth2Data.AccessToken,

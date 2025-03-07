@@ -1,5 +1,6 @@
 ﻿using Vint.Core.Database.Models;
 using Vint.Core.ECS.Components.Chat;
+using Vint.Core.ECS.Components.DailyBonus;
 using Vint.Core.ECS.Components.Fraction;
 using Vint.Core.ECS.Components.Group;
 using Vint.Core.ECS.Components.Quest;
@@ -28,6 +29,7 @@ public class UserTemplate : EntityTemplate {
             .AddComponent(new UserMoneyComponent(player.Crystals))
             .AddComponent(new UserXCrystalsComponent(player.XCrystals))
             .AddComponent<QuestReadyComponent>()
+            .AddComponent<DailyBonusReadyComponent>()
             .AddComponent(new UserReputationComponent(player.Reputation))
             // todo .AddComponent(new TutorialCompleteIdsComponent())
             .AddComponent(new FractionUserScoreComponent(player.FractionScore))

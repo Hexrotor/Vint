@@ -63,8 +63,7 @@ public class PlayerModule(
         await ctx.DeferResponseAsync();
         await using DbConnection db = new();
 
-        var player = await db
-            .Players
+        var player = await db.Players
             .LoadWith(player => player.Stats)
             .Where(player => player.DiscordUserId == ctx.User.Id)
             .Select(player => new { player.Stats, player.Username })

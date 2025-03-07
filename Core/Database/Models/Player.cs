@@ -1,6 +1,7 @@
 ﻿using LinqToDB;
 using LinqToDB.Mapping;
 using Vint.Core.Config;
+using Vint.Core.ECS.Components.Server.DailyBonus;
 using Vint.Core.ECS.Components.Server.Login;
 using Vint.Core.ECS.Entities;
 using Vint.Core.Utils;
@@ -9,17 +10,22 @@ namespace Vint.Core.Database.Models;
 
 [Table(DbConstants.Players)]
 public class Player {
+    public Player() {
+        ResetNextLoginRewardTime();
+        ResetNextDailyBonusTime();
+    }
+
     [PrimaryKey] public required long Id { get; init; }
 
-    [Column(DataType = DataType.Text)] public required string Username { get; set; } = null!;
-    [Column(DataType = DataType.Text)] public required string Email { get; set; } = null!;
+    [Column(DataType = DataType.Text)] public required string Username { get; set; }
+    [Column(DataType = DataType.Text)] public required string Email { get; set; }
     [Column] public ulong DiscordUserId { get; set; }
 
     [Column] public bool RememberMe { get; set; }
 
     [Column] public byte[] AutoLoginToken { get; set; } = [];
-    [Column] public required byte[] PasswordHash { get; set; } = [];
-    [Column(DataType = DataType.Text)] public required string HardwareFingerprint { get; set; } = "";
+    [Column] public required byte[] PasswordHash { get; set; }
+    [Column(DataType = DataType.Text)] public required string HardwareFingerprint { get; set; }
 
     [Column] public PlayerGroups Groups { get; set; }
     [NotColumn] public bool IsAdmin => (Groups & PlayerGroups.Admin) == PlayerGroups.Admin;
@@ -32,7 +38,7 @@ public class Player {
     [Column] public bool DiscordLinkRewarded { get; set; }
     [Column] public bool DiscordLinked { get; set; }
     [Column] public required bool Subscribed { get; set; }
-    [Column(DataType = DataType.Text)] public required string CountryCode { get; set; } = "RU";
+    [Column(DataType = DataType.Text)] public required string CountryCode { get; set; }
 
     [Column] public long CurrentAvatarId { get; set; }
     [Column] public int CurrentPresetIndex { get; set; }
@@ -89,20 +95,21 @@ public class Player {
     [NotColumn] public IEntity Fraction => GlobalEntities.GetEntity("fractions", FractionName);
 
     [Column] public int QuestChanges { get; set; }
-    [NotColumn] public int MaxQuestChanges => IsPremium
-        ? 2
-        : 1;
+    [NotColumn] public int MaxQuestChanges => IsPremium ? 2 : 1;
 
     [Column] public int LastLoginRewardDay { get; set; }
-    [NotColumn] public DateTimeOffset NextLoginRewardTime =>
-        LastLoginRewardTime.AddSeconds(ConfigManager.GetComponent<LoginRewardsComponent>("login_rewards")
-            .IntervalInSeconds);
+    [NotColumn] public Lazy<DateTimeOffset> NextLoginRewardTime { get; private set; } = null!;
+
+    [Column] public int DailyBonusCycle { get; set; }
+    [Column] public int DailyBonusZone { get; set; }
+    [NotColumn] public Lazy<DateTimeOffset> NextDailyBonusTime { get; private set; } = null!;
 
     [Column] public required DateTimeOffset RegistrationTime { get; init; }
     [Column] public required DateTimeOffset LastLoginTime { get; set; }
     [Column] public required DateTimeOffset LastQuestUpdateTime { get; set; }
     [Column] public DateTimeOffset LastLoginRewardTime { get; set; }
     [Column] public DateTimeOffset? QuestChangesResetTime { get; set; }
+    [Column] public DateTimeOffset LastDailyBonusReceivingTime { get; set; }
 
     [Association(ThisKey = $"{nameof(Id)},{nameof(DiscordUserId)}",
         OtherKey = $"{nameof(Models.DiscordLink.PlayerId)},{nameof(Models.DiscordLink.UserId)}")]
@@ -371,6 +378,21 @@ public class Player {
             await db.DisposeTransactionAsync();
         }
     }
+
+    public void ResetNextDailyBonusTime() =>
+        NextDailyBonusTime = new Lazy<DateTimeOffset>(() => {
+            DailyBonusCommonConfigComponent config = ConfigManager.GetComponent<DailyBonusCommonConfigComponent>("dailybonus");
+            TimeSpan interval = TimeSpan.FromSeconds(config.ReceivingBonusIntervalSec);
+
+            if (IsPremium)
+                interval /= config.PremiumTimeSpeedUp;
+
+            return LastDailyBonusReceivingTime + interval;
+        });
+
+    public void ResetNextLoginRewardTime() =>
+        NextLoginRewardTime = new Lazy<DateTimeOffset>(() =>
+            LastLoginRewardTime.AddSeconds(ConfigManager.GetComponent<LoginRewardsComponent>("login_rewards").IntervalInSeconds));
 }
 
 [Flags]

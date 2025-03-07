@@ -33,6 +33,7 @@ public class Statistics {
     [NotColumn] public double KD => Deaths == 0
         ? Kills
         : Math.Round((double)Kills / Deaths, 2);
+
     [NotColumn] public double VD => Defeats == 0
         ? Victories
         : Math.Round((double)Victories / Defeats, 2);

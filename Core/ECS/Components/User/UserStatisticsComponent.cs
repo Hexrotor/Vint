@@ -8,11 +8,10 @@ public class UserStatisticsComponent : IComponent {
     public UserStatisticsComponent(long playerId) {
         using DbConnection db = new();
 
-        Statistics = db
-            .Statistics
+        Statistics = db.Statistics
             .Single(stats => stats.PlayerId == playerId)
             .CollectClientSide();
     }
 
-    public Dictionary<string, long> Statistics { get; private set; }
+    public Dictionary<string, long> Statistics { get; set; }
 }

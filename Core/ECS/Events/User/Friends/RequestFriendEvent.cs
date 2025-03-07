@@ -13,7 +13,7 @@ public class RequestFriendEvent(
 ) : FriendBaseEvent, IServerEvent {
     public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
         await using DbConnection db = new();
-        Player? player = db.Players.SingleOrDefault(player => player.Id == User);
+        Player? player = await db.Players.SingleOrDefaultAsync(player => player.Id == User);
 
         if (player == null) return;
 

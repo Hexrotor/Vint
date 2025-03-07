@@ -52,4 +52,6 @@ public sealed class DbConnection() : DataConnection(Schema) {
     public ITable<PromoCode> PromoCodes => this.GetTable<PromoCode>();
     public ITable<PromoCodeItem> PromoCodeItems => this.GetTable<PromoCodeItem>();
     public ITable<PromoCodeRedemption> PromoCodeRedemptions => this.GetTable<PromoCodeRedemption>();
+    public ITable<DailyBonusRedemption> DailyBonusRedemptions => this.GetTable<DailyBonusRedemption>();
+    public ITable<Detail> Details => this.GetTable<Detail>();
 }

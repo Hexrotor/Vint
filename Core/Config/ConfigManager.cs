@@ -27,6 +27,7 @@ using Vint.Core.Utils;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace Vint.Core.Config;
 
@@ -156,6 +157,7 @@ public static class ConfigManager {
         string configsPath = Path.Combine(ResourcesPath, "Configuration", "configs");
 
         IDeserializer deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
             .WithNodeDeserializer(new ComponentDeserializer())
             .WithNodeTypeResolver(new ComponentDeserializer())
             .WithTypeConverter(new Vector3TypeConverter())
@@ -188,10 +190,7 @@ public static class ConfigManager {
 
                 case "public.yml": {
                     if (deserializer.Deserialize(await File.ReadAllTextAsync(filePath)) is Dictionary<object, object> dict)
-                        components[relativePath[..^11]] = dict
-                            .Values
-                            .OfType<IComponent>()
-                            .ToList();
+                        components[relativePath[..^11]] = dict.Values.OfType<IComponent>().ToList();
 
                     break;
                 }
@@ -530,19 +529,16 @@ public class Vector3TypeConverter : IYamlTypeConverter {
             switch (property.Value.ToLowerInvariant()) {
                 case "x":
                     parser.MoveNext();
-
                     vector.X = float.Parse(parser.Consume<Scalar>().Value);
                     break;
 
                 case "y":
                     parser.MoveNext();
-
                     vector.Y = float.Parse(parser.Consume<Scalar>().Value);
                     break;
 
                 case "z":
                     parser.MoveNext();
-
                     vector.Z = float.Parse(parser.Consume<Scalar>().Value);
                     break;
             }

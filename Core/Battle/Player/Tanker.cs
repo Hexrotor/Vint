@@ -10,6 +10,7 @@ using Vint.Core.Discord;
 using Vint.Core.ECS.Components.Battle.Round;
 using Vint.Core.ECS.Components.Battle.Team;
 using Vint.Core.ECS.Components.Server.Battle.User;
+using Vint.Core.ECS.Components.User;
 using Vint.Core.ECS.Entities;
 using Vint.Core.ECS.Enums;
 using Vint.Core.ECS.Events.Battle;
@@ -156,6 +157,9 @@ public class Tanker : BattlePlayer {
             if (hasEnemies && Round.Properties.Type == BattleType.Rating)
                 await questManager.BattleFinished(this);
         }
+
+        Statistics stats = await db.Statistics.FirstAsync(stats => stats.PlayerId == player.Id);
+        await Connection.UserContainer.Entity.ChangeComponent<UserStatisticsComponent>(component => component.Statistics = stats.CollectClientSide());
 
         PersonalBattleResultForClient personalBattleResult = new(previousLeague, reputationDelta);
         await personalBattleResult.Init(Connection);

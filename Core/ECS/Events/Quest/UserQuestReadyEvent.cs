@@ -9,7 +9,7 @@ using Vint.Core.Quests;
 using Vint.Core.Server.Game;
 using Vint.Core.Server.Game.Protocol.Attributes;
 
-namespace Vint.Core.ECS.Events.User.Quest;
+namespace Vint.Core.ECS.Events.Quest;
 
 [ProtocolId(1497606008074)]
 public class UserQuestReadyEvent(
