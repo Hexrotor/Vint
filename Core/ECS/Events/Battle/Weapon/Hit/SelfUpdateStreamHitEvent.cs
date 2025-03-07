@@ -1,5 +1,4 @@
 using Vint.Core.Battle.Player;
-using Vint.Core.Battle.Rounds;
 using Vint.Core.Battle.Weapons;
 using Vint.Core.ECS.Entities;
 using Vint.Core.Server.Game;
@@ -12,20 +11,16 @@ namespace Vint.Core.ECS.Events.Battle.Weapon.Hit;
 public class SelfUpdateStreamHitEvent : UpdateStreamHitEvent, IServerEvent {
     public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
         Tanker? tanker = connection.LobbyPlayer?.Tanker;
+        IEntity weaponEntity = entities.Single();
 
-        if (tanker?.Tank.WeaponHandler is not StreamWeaponHandler)
+        if (tanker?.Tank.WeaponHandler is not StreamWeaponHandler streamWeapon || streamWeapon.BattleEntity != weaponEntity)
             return;
 
-        IEntity weaponEntity = entities.Single();
-        Round round = tanker.Round;
-
-        RemoteUpdateStreamHitEvent remoteEvent = new() {
-            StaticHit = StaticHit,
-            TankHit = TankHit
-        };
-
-        await round.Players
+        await tanker.Round.Players
             .Where(player => player != tanker)
-            .Send(remoteEvent, weaponEntity);
+            .Send(new RemoteUpdateStreamHitEvent {
+                StaticHit = StaticHit,
+                TankHit = TankHit
+            }, weaponEntity);
     }
 }

@@ -5,6 +5,6 @@ namespace Vint.Core.ECS.Components.User;
 [ProtocolId(1507197930106)]
 public class BlackListComponent(
     params List<long> blockedUsers
-) : IComponent {
+) : PrivateComponent {
     public List<long> BlockedUsers { get; private set; } = blockedUsers.ToList();
 }

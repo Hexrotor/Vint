@@ -22,9 +22,7 @@ public class ModuleMountEvent : IServerEvent {
 
         Player player = connection.Player;
 
-        long marketItemId = moduleUserItem.GetComponent<MarketItemGroupComponent>()
-            .Key;
-
+        long marketItemId = moduleUserItem.GetComponent<MarketItemGroupComponent>().Key;
         Database.Models.Module? module = player.Modules.SingleOrDefault(module => module.Id == marketItemId);
 
         if (module == null || module.Level < 0)

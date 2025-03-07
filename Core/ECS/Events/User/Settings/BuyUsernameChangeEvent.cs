@@ -17,11 +17,9 @@ public class BuyUsernameChangeEvent : IServerEvent {
     public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
         if (!RegexUtils.IsLoginValid(Username)) return;
 
-        IEntity user = entities.Single();
+        IEntity user = connection.UserContainer.Entity;
 
-        long truePrice = ConfigManager.GetComponent<GoodsXPriceComponent>("payment/payable/changeuid")
-            .Price;
-
+        long truePrice = ConfigManager.GetComponent<GoodsXPriceComponent>("payment/payable/changeuid").Price;
         bool success = Price == truePrice && connection.Player.Crystals >= truePrice;
 
         await connection.Send(new CompleteBuyUsernameChangeEvent(success), user);

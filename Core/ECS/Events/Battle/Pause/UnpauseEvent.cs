@@ -14,10 +14,10 @@ public class UnpauseEvent : IServerEvent {
         if (tanker is not { IsPaused: true })
             return;
 
-        IEntity user = entities.Single();
+        IEntity battleUser = tanker.Tank.Entities.BattleUser;
         tanker.IsPaused = false;
 
-        await user.RemoveComponent<PauseComponent>();
-        await user.RemoveComponent<IdleCounterComponent>();
+        await battleUser.RemoveComponent<PauseComponent>();
+        await battleUser.RemoveComponent<IdleCounterComponent>();
     }
 }

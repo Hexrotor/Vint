@@ -6,7 +6,7 @@ namespace Vint.Core.ECS.Components.User;
 public class GameplayChestScoreComponent(
     long current,
     long limit = 1000
-) : IComponent {
+) : PrivateComponent {
     public long Current { get; set; } = current;
     public long Limit { get; private set; } = limit;
 }

@@ -14,11 +14,11 @@ public class PauseEvent : IServerEvent {
         if (tanker is not { IsPaused: false })
             return;
 
-        IEntity user = entities.Single();
+        IEntity battleUser = tanker.Tank.Entities.BattleUser;
         tanker.IsPaused = true;
 
-        await user.AddComponent<PauseComponent>();
-        await user.AddComponent(new IdleCounterComponent(0));
-        await connection.Send(new IdleBeginTimeSyncEvent(DateTimeOffset.UtcNow), user);
+        await battleUser.AddComponent<PauseComponent>();
+        await battleUser.AddComponent(new IdleCounterComponent(0));
+        await connection.Send(new IdleBeginTimeSyncEvent(DateTimeOffset.UtcNow), battleUser);
     }
 }

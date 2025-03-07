@@ -18,6 +18,6 @@ public class ExitFromMatchmakingEvent(
         await rating.TryDequeuePlayer(connection); // fkin bruh
         await arcade.TryDequeuePlayer(connection);
 
-        await connection.Send(new ExitedFromMatchmakingEvent(true), entities);
+        await connection.Send(new ExitedFromMatchmakingEvent(true), [..entities, connection.UserContainer.Entity]);
     }
 }

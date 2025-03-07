@@ -1,7 +1,6 @@
 using Vint.Core.Battle.Modules.Types.Base;
 using Vint.Core.Battle.Player;
 using Vint.Core.Battle.Rounds;
-using Vint.Core.Battle.Tank;
 using Vint.Core.ECS.Entities;
 using Vint.Core.Server.Game;
 using Vint.Core.Server.Game.Protocol.Attributes;
@@ -18,8 +17,7 @@ public class ActivateModuleEvent : TimeEvent, IServerEvent {
             return;
 
         IEntity slot = entities.Single();
-        BattleTank tank = tanker.Tank;
-        BattleModule? module = tank.Modules.SingleOrDefault(module => module.SlotEntity == slot);
+        BattleModule? module = tanker.Tank.Modules.SingleOrDefault(module => module.SlotEntity == slot);
 
         if (module == null)
             return;

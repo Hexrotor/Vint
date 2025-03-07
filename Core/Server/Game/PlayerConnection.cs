@@ -976,10 +976,7 @@ public abstract class PlayerConnection(
     }
 
     public async Task UpgradeModule(IEntity userItem, bool forXCrystals) {
-        long id = userItem.GetComponent<ParentGroupComponent>()
-            .Key;
-
-        await using DbConnection db = new();
+        long id = userItem.GetComponent<ParentGroupComponent>().Key;
 
         Module? module = Player.Modules.SingleOrDefault(module => module.Id == id);
         ModuleCardsCompositionComponent compositionComponent = userItem.GetComponent<ModuleCardsCompositionComponent>();
@@ -1012,12 +1009,11 @@ public abstract class PlayerConnection(
         module.Cards -= price.Cards;
         module.Level++;
 
+        await using DbConnection db = new();
         await db.UpdateAsync(module);
 
         IEntity card = SharedEntities.Single(entity => entity.TemplateAccessor?.Template is ModuleCardUserItemTemplate &&
-                                                       entity.GetComponent<ParentGroupComponent>()
-                                                           .Key ==
-                                                       id);
+                                                       entity.GetComponent<ParentGroupComponent>().Key == id);
 
         await card.ChangeComponent<UserItemCounterComponent>(component => component.Count = module.Cards);
         await userItem.ChangeComponent<ModuleUpgradeLevelComponent>(component => component.Level = module.Level);

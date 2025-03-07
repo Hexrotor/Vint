@@ -1,5 +1,4 @@
 using Vint.Core.Battle.Effects;
-using Vint.Core.Battle.Rounds;
 using Vint.Core.Battle.Tank;
 using Vint.Core.ECS.Entities;
 using Vint.Core.Server.Game;
@@ -18,7 +17,6 @@ public class ApplyTargetsForEMPEffectEvent : IServerEvent {
             return;
 
         IEntity emp = entities.Single();
-        Round round = tank.Round;
 
         EMPEffect? effect = tank.Effects
             .OfType<EMPEffect>()
@@ -27,7 +25,7 @@ public class ApplyTargetsForEMPEffectEvent : IServerEvent {
         if (effect == null)
             return;
 
-        BattleTank[] tanks = round.Tankers
+        BattleTank[] tanks = tank.Round.Tankers
             .Select(tanker => tanker.Tank)
             .IntersectBy(Targets, targetTank => targetTank.Entities.Tank.Id)
             .ToArray();

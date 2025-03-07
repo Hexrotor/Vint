@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using Serilog;
 using Vint.Core.ECS.Entities;
 using Vint.Core.Server.Game;
+using Vint.Core.Server.Game.Protocol.Attributes;
 using Vint.Core.Utils;
 
 namespace Vint.Core.ECS.Components;
@@ -31,4 +32,8 @@ public interface IComponent {
         logger.Verbose("Cloned");
         return component;
     }
+}
+
+public abstract class PrivateComponent : IComponent {
+    [ProtocolIgnore] public required long OwnerUserId { get; init; }
 }

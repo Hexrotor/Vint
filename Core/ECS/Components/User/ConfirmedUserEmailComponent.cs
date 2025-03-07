@@ -6,7 +6,7 @@ namespace Vint.Core.ECS.Components.User;
 public class ConfirmedUserEmailComponent(
     string email,
     bool subscribed
-) : IComponent {
+) : PrivateComponent {
     public string Email { get; private set; } = email;
     public bool Subscribed { get; private set; } = subscribed;
 }

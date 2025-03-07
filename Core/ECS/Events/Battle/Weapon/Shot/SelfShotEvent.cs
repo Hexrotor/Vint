@@ -22,16 +22,17 @@ public class SelfShotEvent : ShotEvent, IServerEvent {
 
     public virtual async Task Execute(IPlayerConnection connection, IEntity[] entities) {
         Tanker? tanker = connection.LobbyPlayer?.Tanker;
+        IEntity weaponEntity = entities.Single();
 
-        if (tanker == null) return;
+        if (tanker == null || tanker.Tank.WeaponHandler.BattleEntity != weaponEntity)
+            return;
 
-        IEntity tankEntity = entities.Single();
         Round round = tanker.Round;
         BattleTank tank = tanker.Tank;
 
         await round.Players
             .Where(player => player != tanker)
-            .Send(RemoteEvent, tankEntity);
+            .Send(RemoteEvent, weaponEntity);
 
         if (tank.WeaponHandler is SmokyWeaponHandler smokyHandler)
             smokyHandler.OnShot(ShotId);

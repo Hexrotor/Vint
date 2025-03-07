@@ -12,7 +12,7 @@ public class SubscribeChangeEvent : IServerEvent {
     public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
         connection.Player.Subscribed = Subscribed;
 
-        if (Subscribed) await connection.UserContainer.Entity.AddComponent(new UserSubscribeComponent(true));
+        if (Subscribed) await connection.UserContainer.Entity.AddComponent(new UserSubscribeComponent(true) { OwnerUserId = connection.Player.Id } );
         else await connection.UserContainer.Entity.RemoveComponent<UserSubscribeComponent>();
     }
 }

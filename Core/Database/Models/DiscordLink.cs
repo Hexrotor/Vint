@@ -18,6 +18,8 @@ public class DiscordLink {
     [Column(DataType = DataType.Text)] public required string AccessToken { get; set; }
     [Column(DataType = DataType.Text)] public required string RefreshToken { private get; set; }
 
+    [NotColumn] static RestClientOptions RestClientOptions => new() { Timeout = DiscordBot.RequestTimeout };
+
     async Task<bool?> PrepareToken(DiscordBot discordBot) {
         if (DateTimeOffset.UtcNow >= TokenExpirationDate)
             await Refresh(discordBot);
@@ -34,6 +36,7 @@ public class DiscordLink {
         };
 
         using HttpClient httpClient = new();
+        httpClient.Timeout = DiscordBot.RequestTimeout;
         HttpResponseMessage response = await httpClient.PostAsync("https://discord.com/api/v10/oauth2/token", new FormUrlEncodedContent(data));
 
         if (response.IsSuccessStatusCode) {
@@ -41,9 +44,7 @@ public class DiscordLink {
             DateTimeOffset tokenExpirationDate = DateTimeOffset.UtcNow.AddSeconds(oAuth2Data.ExpiresIn - 300);
 
             await using DbConnection db = new();
-
-            await db
-                .DiscordLinks
+            await db.DiscordLinks
                 .Where(dLink => dLink.PlayerId == PlayerId && dLink.UserId == UserId)
                 .Set(dLink => dLink.AccessToken, oAuth2Data.AccessToken)
                 .Set(dLink => dLink.RefreshToken, oAuth2Data.RefreshToken)
@@ -58,7 +59,7 @@ public class DiscordLink {
 
     static async Task<bool?> IsAuthorized(string accessToken) {
         try {
-            await new DiscordRestClient(new RestClientOptions(), accessToken, TokenType.Bearer).InitializeAsync();
+            await new DiscordRestClient(RestClientOptions, accessToken, TokenType.Bearer).InitializeAsync();
             return true;
         } catch (UnauthorizedException) {
             return false;
@@ -80,7 +81,7 @@ public class DiscordLink {
             }
 
             case true: {
-                DiscordRestClient client = new(new RestClientOptions(), AccessToken, TokenType.Bearer);
+                DiscordRestClient client = new(RestClientOptions, AccessToken, TokenType.Bearer);
                 await client.InitializeAsync();
                 return (client, true);
             }
@@ -91,22 +92,19 @@ public class DiscordLink {
         await using DbConnection db = new();
         await db.BeginTransactionAsync();
 
-        await db
-            .Players
+        await db.Players
             .Where(player => player.Id == PlayerId && player.DiscordUserId == UserId)
             .Set(player => player.DiscordUserId, 0UL)
             .Set(player => player.DiscordLinked, false)
             .UpdateAsync();
 
-        await db
-            .DiscordLinks
+        await db.DiscordLinks
             .Where(dLink => dLink.PlayerId == PlayerId && dLink.UserId == UserId)
             .DeleteAsync();
 
         await db.CommitTransactionAsync();
 
-        if (connection != null &&
-            connection.Player.Id == PlayerId) {
+        if (connection != null && connection.Player.Id == PlayerId) {
             connection.Player.DiscordLinked = false;
             connection.Player.DiscordUserId = 0;
             connection.Player.DiscordLink = null!;
@@ -119,6 +117,7 @@ public class DiscordLink {
         };
 
         using HttpClient httpClient = new();
+        httpClient.Timeout = DiscordBot.RequestTimeout;
         await httpClient.PostAsync("https://discord.com/api/v10/oauth2/token/revoke", new FormUrlEncodedContent(data));
 
         await discordBot.RevokeLinkedRole(UserId);

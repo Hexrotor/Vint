@@ -13,11 +13,11 @@ public class ConfirmUserCountryEvent : IServerEvent {
     public string CountryCode { get; private set; } = null!;
 
     public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
-        IEntity user = entities.Single();
+        IEntity user = connection.UserContainer.Entity;
         Player player = connection.Player;
 
         if (!user.HasComponent<UserCountryComponent>())
-            await user.AddComponent(new UserCountryComponent(CountryCode));
+            await user.AddComponent(new UserCountryComponent(CountryCode) { OwnerUserId = user.Id });
         else
             await user.ChangeComponent<UserCountryComponent>(component => component.CountryCode = CountryCode);
 

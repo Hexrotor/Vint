@@ -54,9 +54,11 @@ public class EntityComponentStorage {
         else throw new ComponentNotFoundException(Entity, type);
     }
 
-    public void RemoveComponent(Type componentType) {
-        if (!TypeToComponent.Remove(componentType, out _))
+    public void RemoveComponent(Type componentType, out IComponent component) {
+        if (!TypeToComponent.Remove(componentType, out ComponentWithIndex componentWithIndex))
             throw new ComponentNotFoundException(Entity, componentType);
+
+        component = componentWithIndex.Component;
     }
 
     readonly record struct ComponentWithIndex(

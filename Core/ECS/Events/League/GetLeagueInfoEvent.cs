@@ -10,5 +10,5 @@ public class GetLeagueInfoEvent : IServerEvent {
     public long UserId { get; private set; }
 
     public async Task Execute(IPlayerConnection connection, IEntity[] entities) =>
-        await connection.Send(new UpdateTopLeagueInfoEvent(UserId, await Leveling.GetSeasonPlace(UserId)), entities.Single());
+        await connection.Send(new UpdateTopLeagueInfoEvent(UserId, await Leveling.GetSeasonPlace(UserId)), connection.UserContainer.Entity);
 }

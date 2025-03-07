@@ -5,6 +5,6 @@ namespace Vint.Core.ECS.Components.User;
 [ProtocolId(1439270018242)]
 public class RegistrationDateComponent(
     DateTimeOffset? date
-) : IComponent {
+) : PrivateComponent {
     public DateTimeOffset? Date { get; private set; } = date;
 }

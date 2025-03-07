@@ -16,7 +16,7 @@ public class RequestLoadBattleInfoEvent(
 
         if (lobby == null) return;
 
-        BattleInfoForLabelLoadedEvent @event = new(lobby.Properties.ClientParams.MapId, BattleId, lobby.Properties.BattleMode);
-        await connection.Send(@event, entities);
+        await connection.Send(new BattleInfoForLabelLoadedEvent(lobby.Properties.ClientParams.MapId, BattleId, lobby.Properties.BattleMode),
+            connection.UserContainer.Entity);
     }
 }

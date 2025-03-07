@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using Vint.Core.ChatCommands;
 using Vint.Core.Config;
 using Vint.Core.Database.Models;
+using Vint.Core.ECS.Components.Chat;
 using Vint.Core.ECS.Components.Server.Chat;
 using Vint.Core.ECS.Entities;
 using Vint.Core.Server.Game;
@@ -24,6 +25,9 @@ public class SendChatMessageEvent(
 
     public async Task Execute(IPlayerConnection sender, IEntity[] entities) {
         IEntity chat = entities.Single();
+
+        if (!chat.HasComponent<ChatComponent>())
+            return;
 
         if (chatCommandProcessor.TryParseCommand(Message, out ChatCommand? chatCommand)) {
             if (chatCommand == null)

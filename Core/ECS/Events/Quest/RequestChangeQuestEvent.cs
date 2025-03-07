@@ -22,6 +22,9 @@ public class RequestChangeQuestEvent(
         IEntity bonus = entities[0];
         IEntity quest = entities[1];
 
+        if (!bonus.HasComponent<QuestsEnabledComponent>() || !quest.HasComponent<QuestComponent>())
+            return;
+
         await using DbConnection db = new();
 
         if (player.QuestChanges >= player.MaxQuestChanges) {

@@ -11,8 +11,16 @@ namespace Vint.Core.ECS.Events.DailyBonus;
 [ProtocolId(1497606008075)]
 public class UserDailyBonusReadyEvent : IServerEvent {
     public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
+        if (!connection.IsLoggedIn)
+            return;
+
         Player player = connection.Player;
         IEntity user = connection.UserContainer.Entity;
+
+        if (!user.HasComponent<DailyBonusReadyComponent>())
+            return;
+
+        await Cleanup(user);
 
         DateTimeOffset nextDailyBonusTime = player.NextDailyBonusTime.Value;
         DateTimeOffset lastDailyBonusTime = player.LastDailyBonusReceivingTime;
@@ -28,9 +36,17 @@ public class UserDailyBonusReadyEvent : IServerEvent {
                 .Select(redemption => redemption.Code)
                 .ToListAsync();
 
-            await user.AddComponent(new UserDailyBonusReceivedRewardsComponent(receivedRewards));
+            await user.AddComponent(new UserDailyBonusReceivedRewardsComponent(receivedRewards) { OwnerUserId = user.Id } );
         }
 
         await user.AddComponent<UserDailyBonusInitializedComponent>();
+    }
+
+    static async Task Cleanup(IEntity user) { // todo create separate entity for this components
+        await user.RemoveComponentIfPresent<UserDailyBonusCycleComponent>();
+        await user.RemoveComponentIfPresent<UserDailyBonusZoneComponent>();
+        await user.RemoveComponentIfPresent<UserDailyBonusNextReceivingDateComponent>();
+        await user.RemoveComponentIfPresent<UserDailyBonusReceivedRewardsComponent>();
+        await user.RemoveComponentIfPresent<UserDailyBonusInitializedComponent>();
     }
 }

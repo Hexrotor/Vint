@@ -30,9 +30,13 @@ public class Entity : IEntity {
     public IEnumerable<IComponent> SortedComponents => ComponentStorage.SortedComponents;
     public IEnumerable<IComponent> Components => ComponentStorage.Components;
 
-    public EntityShareCommand ToShareCommand() => new(Id, TemplateAccessor, SortedComponents.ToArray());
+    public EntityShareCommand ToShareCommand(IPlayerConnection connection) => new(Id, TemplateAccessor, GetSortedComponentsFor(connection).ToArray());
 
     public EntityUnshareCommand ToUnshareCommand() => new(this);
+
+    IEnumerable<IComponent> GetSortedComponentsFor(IPlayerConnection connection) =>
+        SortedComponents.Where(c => c is not PrivateComponent pc ||
+                                    pc.OwnerUserId == connection.UserContainer.Id);
 
     public async Task Share(IPlayerConnection connection) {
         Logger.Debug("Sharing {Entity} to {Connection}", this, connection);
@@ -42,7 +46,7 @@ public class Entity : IEntity {
             Debugger.Break();
         }
 
-        await connection.Send(ToShareCommand());
+        await connection.Send(ToShareCommand(connection));
         connection.SharedEntities.Add(this);
     }
 
@@ -87,7 +91,12 @@ public class Entity : IEntity {
         ComponentStorage.AddComponent(component);
         Logger.Debug("Added {Name} component to the {Entity}", component.GetType().Name, this);
 
-        await SharedPlayers.Where(pc => pc != excluded).Send(new ComponentAddCommand { Entity = this, Component = component });
+        IEnumerable<IPlayerConnection> connections = SharedPlayers.Where(conn => conn != excluded);
+
+        if (component is PrivateComponent pc)
+            connections = connections.Where(conn => conn.UserContainer.Id == pc.OwnerUserId);
+
+        await connections.Send(new ComponentAddCommand { Entity = this, Component = component });
     }
 
     public Task AddComponent<T>(IPlayerConnection? excluded = null) where T : class, IComponent, new() =>
@@ -143,7 +152,12 @@ public class Entity : IEntity {
         ComponentStorage.ChangeComponent(component);
         Logger.Debug("Changed {Name} component in the {Entity}", component.GetType().Name, this);
 
-        await SharedPlayers.Where(pc => pc != excluded).Send(new ComponentChangeCommand { Entity = this, Component = component });
+        IEnumerable<IPlayerConnection> connections = SharedPlayers.Where(conn => conn != excluded);
+
+        if (component is PrivateComponent pc)
+            connections = connections.Where(conn => conn.UserContainer.Id == pc.OwnerUserId);
+
+        await connections.Send(new ComponentChangeCommand { Entity = this, Component = component });
     }
 
     public Task RemoveComponent<T>(IPlayerConnection? excluded) where T : class, IComponent =>
@@ -153,10 +167,15 @@ public class Entity : IEntity {
         RemoveComponent(component.GetType(), excluded);
 
     public async Task RemoveComponent(Type type, IPlayerConnection? excluded = null) {
-        ComponentStorage.RemoveComponent(type);
+        ComponentStorage.RemoveComponent(type, out IComponent component);
         Logger.Debug("Removed {Name} component from the {Entity}", type.Name, this);
 
-        await SharedPlayers.Where(pc => pc != excluded).Send(new ComponentRemoveCommand { Entity = this, Component = type });
+        IEnumerable<IPlayerConnection> connections = SharedPlayers.Where(conn => conn != excluded);
+
+        if (component is PrivateComponent pc)
+            connections = connections.Where(conn => conn.UserContainer.Id == pc.OwnerUserId);
+
+        await connections.Send(new ComponentRemoveCommand { Entity = this, Component = type });
     }
 
     public override string ToString() => $"Entity {{ " +

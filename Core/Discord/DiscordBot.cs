@@ -31,6 +31,8 @@ public class DiscordBot(
         ProdClientSecret = "VINT_DISCORD_BOT_PROD_CLIENT_SECRET",
         StatusTemplate = "Vint | {0} players online";
 
+    public static TimeSpan RequestTimeout { get; } = TimeSpan.FromSeconds(5);
+
     public ulong Id => Client.CurrentApplication.Id;
     public string ClientSecret { get; } = Environment.GetEnvironmentVariable(DebugClientSecret) ??
                                           Environment.GetEnvironmentVariable(ProdClientSecret)!;
@@ -51,6 +53,7 @@ public class DiscordBot(
 
         Client = DiscordClientBuilder
             .CreateDefault(token, DiscordIntents.All)
+            .ConfigureRestClient(opt => opt.Timeout = RequestTimeout)
             .ConfigureLogging(builder => builder.AddSerilog(Logger))
             .ConfigureServices(serviceCollection => serviceCollection
                 .AddSingleton(serviceProvider.GetRequiredService<GameServer>())

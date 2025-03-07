@@ -14,7 +14,7 @@ public interface IEntity {
     IEnumerable<IComponent> Components { get; }
     ConcurrentHashSet<IPlayerConnection> SharedPlayers { get; }
 
-    protected EntityShareCommand ToShareCommand();
+    protected EntityShareCommand ToShareCommand(IPlayerConnection connection);
 
     protected EntityUnshareCommand ToUnshareCommand();
 

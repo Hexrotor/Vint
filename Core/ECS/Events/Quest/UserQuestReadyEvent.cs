@@ -16,7 +16,8 @@ public class UserQuestReadyEvent(
     QuestManager questManager
 ) : IServerEvent { // todo premium
     public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
-        if (!connection.IsLoggedIn) return;
+        if (!connection.IsLoggedIn || !connection.UserContainer.Entity.HasComponent<QuestReadyComponent>())
+            return;
 
         Player player = connection.Player;
 
