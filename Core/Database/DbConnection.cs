@@ -38,7 +38,6 @@ public sealed class DbConnection() : DataConnection(Schema) {
     public ITable<Shell> Shells => this.GetTable<Shell>();
     public ITable<Weapon> Weapons => this.GetTable<Weapon>();
     public ITable<WeaponSkin> WeaponSkins => this.GetTable<WeaponSkin>();
-    public ITable<Relation> Relations => this.GetTable<Relation>();
     public ITable<Module> Modules => this.GetTable<Module>();
     public ITable<Container> Containers => this.GetTable<Container>();
     public ITable<Statistics> Statistics => this.GetTable<Statistics>();
@@ -54,4 +53,8 @@ public sealed class DbConnection() : DataConnection(Schema) {
     public ITable<PromoCodeRedemption> PromoCodeRedemptions => this.GetTable<PromoCodeRedemption>();
     public ITable<DailyBonusRedemption> DailyBonusRedemptions => this.GetTable<DailyBonusRedemption>();
     public ITable<Detail> Details => this.GetTable<Detail>();
+    public ITable<Block> Blocks => this.GetTable<Block>();
+    public ITable<FriendRequest> FriendRequests => this.GetTable<FriendRequest>();
+    public ITable<Friend> Friends => this.GetTable<Friend>();
+    public ITable<Report> Reports => this.GetTable<Report>();
 }

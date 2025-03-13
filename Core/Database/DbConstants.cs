@@ -3,11 +3,14 @@ namespace Vint.Core.Database;
 public static class DbConstants {
     #region Tables
     public const string Avatars = "Avatars";
+    public const string Blocks = "Blocks";
     public const string Containers = "Containers";
     public const string Covers = "Covers";
     public const string DailyBonusRedemptions = "DailyBonusRedemptions";
     public const string Details = "Details";
     public const string DiscordLinks = "DiscordLinks";
+    public const string FriendRequests = "FriendRequests";
+    public const string Friends = "Friends";
     public const string Graffities = "Graffities";
     public const string Hulls = "Hulls";
     public const string HullSkins = "HullSkins";
@@ -22,7 +25,7 @@ public static class DbConstants {
     public const string PromoCodes = "PromoCodes";
     public const string Punishments = "Punishments";
     public const string Quests = "Quests";
-    public const string Relations = "Relations";
+    public const string Reports = "Reports";
     public const string ReputationStatistics = "ReputationStatistics";
     public const string SeasonStatistics = "SeasonStatistics";
     public const string Shells = "Shells";
@@ -34,5 +37,9 @@ public static class DbConstants {
     #region CommonColumns
     public const string Id = "Id";
     public const string PlayerId = "PlayerId";
+    #endregion
+
+    #region Deprecated
+    public const string Relations = "Relations";
     #endregion
 }

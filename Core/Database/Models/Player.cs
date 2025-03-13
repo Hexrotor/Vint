@@ -148,9 +148,6 @@ public class Player {
     [Association(ThisKey = nameof(Id), OtherKey = nameof(Preset.PlayerId))]
     public List<Preset> Presets { get; private set; } = null!;
 
-    [Association(ThisKey = nameof(Id), OtherKey = nameof(Relation.SourcePlayerId))]
-    public List<Relation> Relations { get; private set; } = null!;
-
     [Association(ThisKey = nameof(Id), OtherKey = nameof(Shell.PlayerId))]
     public List<Shell> Shells { get; private set; } = null!;
 

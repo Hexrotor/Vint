@@ -1,6 +1,5 @@
 using LinqToDB;
 using Vint.Core.Database;
-using Vint.Core.Database.Models;
 using Vint.Core.ECS.Entities;
 using Vint.Core.Server.Game;
 using Vint.Core.Server.Game.Protocol.Attributes;
@@ -12,35 +11,26 @@ public class BreakOffFriendEvent(
     GameServer server
 ) : FriendBaseEvent, IServerEvent {
     public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
+        long senderId = connection.UserContainer.Id;
+
         await using DbConnection db = new();
-        Player? player = await db.Players.SingleOrDefaultAsync(player => player.Id == User);
 
-        if (player == null) return;
+        bool success = await db.Friends
+            .Where(friend => (friend.UserId == senderId && friend.FriendId == UserId) ||
+                             (friend.UserId == UserId && friend.FriendId == senderId))
+            .DeleteAsync() > 0;
 
-        await db.BeginTransactionAsync();
+        if (!success) return;
 
-        await db
-            .Relations
-            .Where(relation => relation.SourcePlayerId == player.Id && relation.TargetPlayerId == connection.Player.Id)
-            .Set(relation => relation.Types, relation => relation.Types & ~RelationTypes.Friend)
-            .UpdateAsync();
-
-        await db
-            .Relations
-            .Where(relation => relation.SourcePlayerId == connection.Player.Id && relation.TargetPlayerId == player.Id)
-            .Set(relation => relation.Types, relation => relation.Types & ~RelationTypes.Friend)
-            .UpdateAsync();
-
-        await db.CommitTransactionAsync();
-        await connection.Send(new AcceptedFriendRemovedEvent(player.Id), connection.UserContainer.Entity);
+        await connection.Send(new AcceptedFriendRemovedEvent(UserId), connection.UserContainer.Entity);
 
         IPlayerConnection? targetConnection = server
             .PlayerConnections
             .Values
             .Where(conn => conn.IsLoggedIn)
-            .SingleOrDefault(conn => conn.Player.Id == player.Id);
+            .SingleOrDefault(conn => conn.Player.Id == UserId);
 
         if (targetConnection != null)
-            await targetConnection.Send(new AcceptedFriendRemovedEvent(connection.Player.Id), UserContainer.Entity);
+            await targetConnection.Send(new AcceptedFriendRemovedEvent(senderId), UserContainer.Entity);
     }
 }

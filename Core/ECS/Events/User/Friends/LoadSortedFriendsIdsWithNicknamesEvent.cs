@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using LinqToDB;
 using Vint.Core.Database;
 using Vint.Core.ECS.Entities;
@@ -11,30 +12,41 @@ public class LoadSortedFriendsIdsWithNicknamesEvent(
     GameServer server
 ) : IServerEvent {
     public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
-        await using DbConnection db = new();
-        List<IPlayerConnection> connections = server.PlayerConnections.Values.ToList();
+        FrozenDictionary<long, string> friendsUnsorted;
 
-        Dictionary<long, string> friends = db
-            .Relations
-            .Where(relation => relation.SourcePlayerId == connection.Player.Id)
-            .LoadWith(relation => relation.TargetPlayer)
-            .Select(relation => new { Id = relation.TargetPlayerId, relation.TargetPlayer.Username })
-            .ToList()
-            .Select(relation => new {
-                relation.Id,
-                relation.Username,
-                IsOnline = connections
-                    .Where(conn => conn.IsLoggedIn)
-                    .Any(conn => conn.Player.Id == relation.Id),
-                InLobby = connections
-                    .Where(conn => conn is { IsLoggedIn: true, InLobby: true })
-                    .Any(conn => conn.Player.Id == relation.Id)
-            })
-            .OrderByDescending(player => player.IsOnline)
-            .ThenBy(player => player.InLobby)
-            .ThenBy(player => player.Username)
-            .ToDictionary(relation => relation.Id, relation => relation.Username);
+        await using (DbConnection db = new()) {
+            friendsUnsorted = (await db.Friends
+                .Where(friend => friend.UserId == connection.UserContainer.Id)
+                .LoadWith(friend => friend.FriendPlayer)
+                .ToDictionaryAsync(friend => friend.FriendId, friend => friend.FriendPlayer.Username))
+                .ToFrozenDictionary();
+        }
 
-        await connection.Send(new SortedFriendsIdsWithNicknamesLoadedEvent(friends));
+        FrozenDictionary<long, PlayerStatus> statuses = server.PlayerConnections.Values
+            .Where(conn => conn.IsLoggedIn && friendsUnsorted.ContainsKey(conn.UserContainer.Id))
+            .ToFrozenDictionary(
+                conn => conn.UserContainer.Id,
+                conn => conn.InLobby ? PlayerStatus.InLobby : PlayerStatus.Online);
+
+        await connection.Send(new SortedFriendsIdsWithNicknamesLoadedEvent(friendsUnsorted
+            .Order(new FriendComparer(id => statuses.GetValueOrDefault(id, PlayerStatus.Offline)))
+            .ToDictionary()));
+    }
+}
+
+file enum PlayerStatus {
+    Offline,
+    Online,
+    InLobby
+}
+
+file class FriendComparer(
+    Func<long, PlayerStatus> getStatus
+) : IComparer<KeyValuePair<long, string>> {
+    public int Compare(KeyValuePair<long, string> x, KeyValuePair<long, string> y) {
+        int statusComparison = getStatus(y.Key).CompareTo(getStatus(x.Key));
+        return statusComparison != 0
+            ? statusComparison
+            : string.Compare(x.Value, y.Value, StringComparison.Ordinal);
     }
 }

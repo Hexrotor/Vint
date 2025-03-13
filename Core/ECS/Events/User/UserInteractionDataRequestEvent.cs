@@ -1,6 +1,6 @@
 using LinqToDB;
 using Vint.Core.Database;
-using Vint.Core.Database.Models;
+using Vint.Core.ECS.Components.User;
 using Vint.Core.ECS.Entities;
 using Vint.Core.Server.Game;
 using Vint.Core.Server.Game.Protocol.Attributes;
@@ -12,40 +12,31 @@ public class UserInteractionDataRequestEvent : IServerEvent {
     public long UserId { get; private set; }
 
     public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
-        await using DbConnection db = new();
-        Player? player = await db.Players.SingleOrDefaultAsync(player => player.Id == UserId);
+        long requesterId = connection.UserContainer.Id;
 
-        if (player == null) return;
+        if (requesterId == UserId || !UserRegistry.TryGetContainer(UserId, out UserContainer? container))
+            return;
 
-        Relation? thisToTargetRelation = await db.Relations.SingleOrDefaultAsync(relation =>
-            relation.SourcePlayerId == connection.Player.Id && relation.TargetPlayerId == player.Id);
+        string username = container.Entity.GetComponent<UserUidComponent>().Username;
+        bool isFriends;
+        bool isBlocked;
+        bool isReported;
+        bool isOutgoingRequestSent;
 
-        Relation? targetToThisRelation = await db.Relations.SingleOrDefaultAsync(relation =>
-            relation.SourcePlayerId == player.Id && relation.TargetPlayerId == connection.Player.Id);
+        await using (DbConnection db = new()) {
+            isFriends = await db.Friends.AnyAsync(friend => friend.UserId == requesterId && friend.FriendId == UserId);
+            isBlocked = await db.Blocks.AnyAsync(block => block.BlockerId == requesterId && block.BlockedId == UserId);
+            isReported = await db.Reports.AnyAsync(report => report.ReporterId == requesterId && report.ReportedId == UserId);
+            isOutgoingRequestSent = await db.FriendRequests.AnyAsync(request => request.SenderId == requesterId && request.FriendId == UserId);
+        }
 
-        bool noRelations = !IsFriend(thisToTargetRelation) &&
-                           !IsBlocked(thisToTargetRelation) &&
-                           !IsIncoming(thisToTargetRelation) &&
-                           !IsOutgoing(thisToTargetRelation);
-
-        bool canRequestFriend = connection.Player.Id != player.Id &&
-                                noRelations &&
-                                (targetToThisRelation?.Types & RelationTypes.Blocked) != RelationTypes.Blocked;
-
-        await connection.Send(new UserInteractionDataResponseEvent(UserId,
-                player.Username,
-                canRequestFriend,
-                !noRelations && IsOutgoing(thisToTargetRelation),
-                !noRelations && IsBlocked(thisToTargetRelation),
-                IsReported(thisToTargetRelation)),
-            entities.Single());
-
-        return;
-
-        static bool IsFriend(Relation? relation) => (relation?.Types & RelationTypes.Friend) == RelationTypes.Friend;
-        static bool IsBlocked(Relation? relation) => (relation?.Types & RelationTypes.Blocked) == RelationTypes.Blocked;
-        static bool IsReported(Relation? relation) => (relation?.Types & RelationTypes.Reported) == RelationTypes.Reported;
-        static bool IsIncoming(Relation? relation) => (relation?.Types & RelationTypes.IncomingRequest) == RelationTypes.IncomingRequest;
-        static bool IsOutgoing(Relation? relation) => (relation?.Types & RelationTypes.OutgoingRequest) == RelationTypes.OutgoingRequest;
+        await connection.Send(new UserInteractionDataResponseEvent {
+            UserId = UserId,
+            Username = username,
+            CanRequestFriendship = !isFriends && !isOutgoingRequestSent,
+            FriendshipRequestWasSend = isOutgoingRequestSent,
+            Blocked = isBlocked,
+            Reported = isReported
+        }, connection.UserContainer.Entity);
     }
 }

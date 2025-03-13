@@ -1,5 +1,4 @@
-﻿using LinqToDB;
-using Serilog;
+﻿using Serilog;
 using Vint.Core.Database;
 using Vint.Core.Database.Models;
 using Vint.Core.ECS.Entities;
@@ -25,11 +24,7 @@ public class AutoLoginUserEvent(
 
         await using DbConnection db = new();
 
-        Player? player = await db
-            .Players
-            .LoadWith(player => player.Modules)
-            .LoadWith(player => player.DiscordLink)
-            .SingleOrDefaultAsync(player => player.Username == Username);
+        Player? player = await db.GetSelfPlayerByUsername(Username);
 
         if (player == null) {
             await Fail(connection);

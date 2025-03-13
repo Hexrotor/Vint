@@ -3,18 +3,11 @@ using Vint.Core.Server.Game.Protocol.Attributes;
 namespace Vint.Core.ECS.Events.User;
 
 [ProtocolId(1412360987645)]
-public class UserInteractionDataResponseEvent(
-    long userId,
-    string username,
-    bool canRequestFriendship,
-    bool friendshipRequestWasSend,
-    bool muted,
-    bool reported
-) : IEvent {
-    public long UserId { get; private set; } = userId;
-    public string UserUid { get; private set; } = username;
-    public bool CanRequestFriendship { get; private set; } = canRequestFriendship;
-    public bool FriendshipRequestWasSend { get; private set; } = friendshipRequestWasSend;
-    public bool Muted { get; private set; } = muted;
-    public bool Reported { get; private set; } = reported;
+public class UserInteractionDataResponseEvent : IEvent {
+    public required long UserId { get; init; }
+    public required string Username { get; init; }
+    public required bool CanRequestFriendship { get; init; }
+    public required bool FriendshipRequestWasSend { get; init; }
+    public required bool Blocked { get; init; }
+    public required bool Reported { get; init; }
 }

@@ -17,24 +17,28 @@ public class ReportUserByUserIdEvent(
     public long SourceId { get; set; }
     public long UserId { get; set; }
 
-    public async Task Execute(IPlayerConnection connection, IEntity[] entities) { // todo improve
+    public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
+        if (connection.UserContainer.Id == UserId) return;
+
         await using DbConnection db = new();
 
-        Player? targetPlayer = await db.Players.SingleOrDefaultAsync(player => player.Id == UserId);
+        string? reportedUsername = await db.Players
+            .Where(player => player.Id == UserId)
+            .Select(player => player.Username)
+            .SingleOrDefaultAsync();
 
-        if (targetPlayer == null) return;
+        if (reportedUsername == null) return;
 
         if (discordBot != null)
-            await discordBot.SendReport($"{targetPlayer.Username} has been reported", connection.Player.Username);
+            await discordBot.SendReport($"{reportedUsername} has been reported", connection.Player.Username);
 
-        Relation? relation =
-            await db.Relations.SingleOrDefaultAsync(relation => relation.SourcePlayerId == SourceId && relation.TargetPlayerId == UserId);
+        Report report = new() {
+            ReporterId = connection.UserContainer.Id,
+            ReportedId = UserId,
+            CreatedAt = DateTimeOffset.UtcNow,
+            InteractionSource = InteractionSource
+        };
 
-        if (relation == null) {
-            await db.InsertAsync(new Relation { SourcePlayer = connection.Player, TargetPlayer = targetPlayer, Types = RelationTypes.Reported });
-        } else {
-            relation.Types |= RelationTypes.Reported;
-            await db.UpdateAsync(relation);
-        }
+        await db.InsertAsync(report);
     }
 }

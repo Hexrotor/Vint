@@ -1,7 +1,4 @@
-﻿using LinqToDB;
-using Vint.Core.Battle.Player;
-using Vint.Core.Database;
-using Vint.Core.Database.Models;
+﻿using Vint.Core.Battle.Player;
 using Vint.Core.ECS.Components.Chat;
 using Vint.Core.ECS.Components.User;
 using Vint.Core.ECS.Entities;
@@ -13,67 +10,20 @@ namespace Vint.Core.Utils;
 
 public static class ChatUtils {
     public static bool CensorshipEnabled => false;
-    public static IEntity GlobalChat => GlobalEntities.GetEntity("chats", "En");
+    static IEntity GlobalChat => GlobalEntities.GetEntity("chats", "En");
 
-    public static Dictionary<string, Dictionary<string, string>> Localization { get; } = new() { // hardcoded, todo parse from configs
-        {
-            "RU", new Dictionary<string, string> {
-                { "SystemUsername", "Системное сообщение" },
-                { "BlockedUsername", "Заблокированный игрок" },
-                { "BlockedMessage", "[Заблокировано]" }
-            }
-        }, {
-            "EN", new Dictionary<string, string> {
-                { "SystemUsername", "System message" },
-                { "BlockedUsername", "Blocked player" },
-                { "BlockedMessage", "[Blocked]" }
-            }
-        }
-    };
-
-    public static async Task<ChatMessageReceivedEvent?> CreateMessageEvent(string message, IPlayerConnection receiver, IPlayerConnection? sender) {
-        await using DbConnection db = new();
-
+    static ChatMessageReceivedEvent CreateMessageEvent(string message, IPlayerConnection? sender) {
         bool isSystem = sender == null;
-        bool isBlocked = !isSystem &&
-                         await db.Relations.SingleOrDefaultAsync(relation => relation.SourcePlayerId == receiver.Player.Id &&
-                                                                             relation.TargetPlayerId == sender!.Player.Id &&
-                                                                             (relation.Types & RelationTypes.Blocked) == RelationTypes.Blocked) != null;
-
-        if (isBlocked) return null;
-
-        string receiverLocale = receiver.Player.CountryCode.ToUpper() switch {
-            "RU" => "RU",
-            "EN" => "EN",
-            _ => "EN"
-        };
-
-        Dictionary<string, string> localizedStrings = Localization[receiverLocale];
 
         long userId = isSystem ? 0 : sender!.Player.Id;
         string avatarId = isSystem ? "" : sender!.UserContainer.Entity.GetComponent<UserAvatarComponent>().Id;
-        string username = isSystem
-            ? localizedStrings["SystemUsername"]
-            : isBlocked
-                ? localizedStrings["BlockedUsername"]
-                : sender!.Player.Username;
-
-        message = isBlocked
-            ? localizedStrings["BlockedMessage"]
-            : message;
+        string username = isSystem ? "System" : sender!.Player.Username;
 
         return new ChatMessageReceivedEvent(username, message, userId, avatarId, isSystem);
     }
 
-    public static async Task SendMessage(string message, IEntity chat, IEnumerable<IPlayerConnection> receivers, IPlayerConnection? sender) {
-        foreach (IPlayerConnection receiver in receivers) {
-            ChatMessageReceivedEvent? messageEvent = await CreateMessageEvent(message, receiver, sender);
-
-            if (messageEvent == null) continue;
-
-            await receiver.Send(messageEvent, chat);
-        }
-    }
+    public static async Task SendMessage(string message, IEntity chat, IEnumerable<IPlayerConnection> receivers, IPlayerConnection? sender) =>
+        await receivers.Send(CreateMessageEvent(message, sender), chat);
 
     // todo REWRITE, squads
     public static IEnumerable<IPlayerConnection> GetReceivers(GameServer server, IPlayerConnection from, IEntity chat) =>

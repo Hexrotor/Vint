@@ -4,6 +4,7 @@ using Vint.Core.Database.Models;
 using Vint.Core.ECS.Entities;
 using Vint.Core.Server.Game;
 using Vint.Core.Server.Game.Protocol.Attributes;
+using Vint.Core.Utils;
 
 namespace Vint.Core.ECS.Events.User.Friends;
 
@@ -12,38 +13,48 @@ public class AcceptFriendEvent(
     GameServer server
 ) : FriendBaseEvent, IServerEvent {
     public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
+        long receiverId = connection.UserContainer.Id;
+
         await using DbConnection db = new();
-        Player? player = await db.Players.SingleOrDefaultAsync(player => player.Id == User);
-
-        if (player == null) return;
-
         await db.BeginTransactionAsync();
 
-        await db
-            .Relations
-            .Where(relation => relation.SourcePlayerId == player.Id && relation.TargetPlayerId == connection.Player.Id)
-            .Set(relation => relation.Types, relation => relation.Types & ~RelationTypes.OutgoingRequest | RelationTypes.Friend)
-            .UpdateAsync();
+        FriendRequest? request = (await db.FriendRequests
+            .Where(request => request.SenderId == UserId && request.FriendId == receiverId)
+            .DeleteWithOutputAsync()
+            .ToListAsync())
+            .SingleOrDefault();
 
-        await db
-            .Relations
-            .Where(relation => relation.SourcePlayerId == connection.Player.Id && relation.TargetPlayerId == player.Id)
-            .Set(relation => relation.Types, relation => relation.Types & ~RelationTypes.IncomingRequest | RelationTypes.Friend)
-            .UpdateAsync();
+        if (request == null) return;
+
+        Friend senderToReceiver = new() {
+            UserId = UserId,
+            FriendId = receiverId,
+            RequestedAt = request.CreatedAt,
+            AcceptedAt = DateTimeOffset.UtcNow
+        };
+
+        Friend receiverToSender = new() {
+            UserId = receiverId,
+            FriendId = UserId,
+            RequestedAt = request.CreatedAt,
+            AcceptedAt = DateTimeOffset.UtcNow
+        };
+
+        await db.InsertAsync(senderToReceiver);
+        await db.InsertAsync(receiverToSender);
 
         await db.CommitTransactionAsync();
-        await connection.Send(new IncomingFriendRemovedEvent(player.Id), connection.UserContainer.Entity);
-        await connection.Send(new AcceptedFriendAddedEvent(player.Id), connection.UserContainer.Entity);
 
-        IPlayerConnection? playerConnection = server
-            .PlayerConnections
-            .Values
+        await connection.Send(new IncomingFriendRemovedEvent(UserId), connection.UserContainer.Entity);
+        await connection.Send(new AcceptedFriendAddedEvent(UserId), connection.UserContainer.Entity);
+
+        IPlayerConnection? sender = server.PlayerConnections.Values
             .Where(conn => conn.IsLoggedIn)
-            .SingleOrDefault(conn => conn.Player.Id == player.Id);
+            .SingleOrDefault(conn => conn.Player.Id == UserId);
 
-        if (playerConnection == null) return;
+        if (sender == null) return;
 
-        await playerConnection.Send(new OutgoingFriendRemovedEvent(connection.Player.Id), UserContainer.Entity);
-        await playerConnection.Send(new AcceptedFriendAddedEvent(connection.Player.Id), UserContainer.Entity);
+        await sender.Send(new OutgoingFriendRemovedEvent(receiverId), UserContainer.Entity);
+        await sender.Send(new AcceptedFriendAddedEvent(receiverId), UserContainer.Entity);
     }
 }

@@ -2,6 +2,7 @@ using LinqToDB;
 using Vint.Core.Database;
 using Vint.Core.Database.Models;
 using Vint.Core.ECS.Entities;
+using Vint.Core.ECS.Templates.Notification;
 using Vint.Core.Server.Game;
 using Vint.Core.Server.Game.Protocol.Attributes;
 
@@ -12,60 +13,50 @@ public class RequestFriendEvent(
     GameServer server
 ) : FriendBaseEvent, IServerEvent {
     public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
-        await using DbConnection db = new();
-        Player? player = await db.Players.SingleOrDefaultAsync(player => player.Id == User);
+        long senderId = connection.UserContainer.Id;
 
-        if (player == null) return;
+        if (senderId == UserId) return;
+
+        await using DbConnection db = new();
+        bool canRequestFriend = !await AlreadyRequested(db, senderId, UserId) &&
+                                !await AlreadyFriends(db, senderId, UserId) &&
+                                !await SenderBlocked(db, senderId, UserId);
+
+        if (!canRequestFriend) return;
 
         await db.BeginTransactionAsync();
+        await db.Blocks
+            .Where(block => block.BlockerId == senderId && block.BlockedId == UserId)
+            .DeleteAsync();
 
-        Relation? thisToTargetRelation = await db.Relations.SingleOrDefaultAsync(relation =>
-            relation.SourcePlayerId == connection.Player.Id && relation.TargetPlayerId == player.Id);
+        FriendRequest request = new() {
+            SenderId = senderId,
+            FriendId = UserId,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
 
-        Relation? targetToThisRelation = await db.Relations.SingleOrDefaultAsync(relation =>
-            relation.SourcePlayerId == player.Id && relation.TargetPlayerId == connection.Player.Id);
-
-        if ((targetToThisRelation?.Types & RelationTypes.Blocked) == RelationTypes.Blocked)
-            return;
-
-        if (thisToTargetRelation != null &&
-            targetToThisRelation != null &&
-            (thisToTargetRelation.Types & RelationTypes.IncomingRequest) == RelationTypes.IncomingRequest &&
-            (targetToThisRelation.Types & RelationTypes.OutgoingRequest) == RelationTypes.OutgoingRequest) {
-            thisToTargetRelation.Types = thisToTargetRelation.Types & ~RelationTypes.IncomingRequest | RelationTypes.Friend;
-            targetToThisRelation.Types = targetToThisRelation.Types & ~RelationTypes.OutgoingRequest | RelationTypes.Friend;
-
-            await db.UpdateAsync(thisToTargetRelation);
-            await db.UpdateAsync(targetToThisRelation);
-        } else {
-            if (thisToTargetRelation == null) {
-                await db.InsertAsync(new Relation { SourcePlayer = connection.Player, TargetPlayer = player, Types = RelationTypes.OutgoingRequest });
-            } else {
-                thisToTargetRelation.Types &= ~RelationTypes.Blocked;
-                thisToTargetRelation.Types |= RelationTypes.OutgoingRequest;
-                await db.UpdateAsync(thisToTargetRelation);
-            }
-
-            if (targetToThisRelation == null) {
-                await db.InsertAsync(new Relation { SourcePlayer = player, TargetPlayer = connection.Player, Types = RelationTypes.IncomingRequest });
-            } else {
-                targetToThisRelation.Types |= RelationTypes.IncomingRequest;
-                await db.UpdateAsync(targetToThisRelation);
-            }
-        }
+        request.Id = await db.InsertWithInt32IdentityAsync(request);
 
         await db.CommitTransactionAsync();
 
-        await UserContainer.UnshareFrom(connection);
-        await connection.Send(new OutgoingFriendAddedEvent(player.Id), connection.UserContainer.Entity);
+        await connection.Send(new OutgoingFriendAddedEvent(UserId), connection.UserContainer.Entity);
+        await connection.Share(new FriendSentNotificationTemplate().Create(connection.UserContainer.Entity));
 
-        IPlayerConnection? targetConnection = server
-            .PlayerConnections
-            .Values
+        IPlayerConnection? targetConnection = server.PlayerConnections.Values
             .Where(conn => conn.IsLoggedIn)
-            .SingleOrDefault(conn => conn.Player.Id == player.Id);
+            .SingleOrDefault(conn => conn.UserContainer.Id == UserId);
 
         if (targetConnection != null)
-            await targetConnection.Send(new IncomingFriendAddedEvent(connection.Player.Id), UserContainer.Entity);
+            await targetConnection.Send(new IncomingFriendAddedEvent(senderId), UserContainer.Entity);
     }
+
+    static Task<bool> AlreadyFriends(DbConnection db, long senderId, long receiverId) => db.Friends
+        .AnyAsync(friend => (friend.UserId == senderId && friend.FriendId == receiverId) ||
+                            (friend.UserId == receiverId && friend.FriendId == senderId));
+    static Task<bool> AlreadyRequested(DbConnection db, long senderId, long receiverId) => db.FriendRequests
+        .AnyAsync(request => (request.SenderId == senderId && request.FriendId == receiverId) ||
+                             (request.SenderId == receiverId && request.FriendId == senderId));
+
+    static Task<bool> SenderBlocked(DbConnection db, long senderId, long receiverId) => db.Blocks
+        .AnyAsync(block => block.BlockerId == receiverId && block.BlockedId == senderId);
 }

@@ -16,27 +16,8 @@ public class UserOnlineEvent : IServerEvent {
     public async Task Execute(IPlayerConnection connection, IEntity[] entities) {
         await connection.Share(connection.GetEntities());
 
-        await using DbConnection db = new();
-
         Player player = connection.Player;
         Preset preset = player.CurrentPreset;
-
-        /*IEnumerable<IEntity> mountedHullSkins = db.Hulls
-            .Where(hull => hull.PlayerId == player.Id && hull.Id != preset.Hull.Id)
-            .Select(hull => hull.SkinId)
-            .ToList()
-            .Select(connection.GetEntity)
-            .Where(entity => entity != null)
-            .Select(entity => entity!.GetUserEntity(connection));
-
-        IEnumerable<IEntity> mountedWeaponSkins = db.Weapons
-            .Where(weapon => weapon.PlayerId == player.Id && weapon.Id != preset.Weapon.Id)
-            .Select(weapon => new { weapon.SkinId, weapon.ShellId })
-            .ToList()
-            .SelectMany(skins => new[] { skins.SkinId, skins.ShellId })
-            .Select(connection.GetEntity)
-            .Where(entity => entity != null)
-            .Select(entity => entity!.GetUserEntity(connection));*/
 
         foreach (IEntity entity in new[] {
                          connection.GetEntity(player.CurrentAvatarId)!.GetUserEntity(connection),
@@ -48,10 +29,7 @@ public class UserOnlineEvent : IServerEvent {
                          preset.WeaponSkin.GetUserEntity(connection),
                          preset.Shell.GetUserEntity(connection),
                          preset.Graffiti.GetUserEntity(connection)
-                     }
-                     /*.Concat(mountedHullSkins)
-                     .Concat(mountedWeaponSkins)*/
-                     .Distinct()) {
+                     }.Distinct()) {
             await entity.AddComponent<MountedItemComponent>();
         }
 
@@ -65,21 +43,21 @@ public class UserOnlineEvent : IServerEvent {
 
         await connection.Send(new PaymentSectionLoadedEvent());
 
-        IQueryable<Relation> relations = db.Relations.Where(relation => relation.SourcePlayerId == player.Id);
+        await using DbConnection db = new();
 
-        HashSet<long> friendIds = relations
-            .Where(relation => (relation.Types & RelationTypes.Friend) == RelationTypes.Friend)
-            .Select(relation => relation.TargetPlayerId)
+        HashSet<long> friendIds = db.Friends
+            .Where(friend => friend.UserId == player.Id)
+            .Select(friend => friend.FriendId)
             .ToHashSet();
 
-        HashSet<long> incomingIds = relations
-            .Where(relation => (relation.Types & RelationTypes.IncomingRequest) == RelationTypes.IncomingRequest)
-            .Select(relation => relation.TargetPlayerId)
+        HashSet<long> incomingIds = db.FriendRequests
+            .Where(request => request.FriendId == player.Id)
+            .Select(request => request.SenderId)
             .ToHashSet();
 
-        HashSet<long> outgoingIds = relations
-            .Where(relation => (relation.Types & RelationTypes.OutgoingRequest) == RelationTypes.OutgoingRequest)
-            .Select(relation => relation.TargetPlayerId)
+        HashSet<long> outgoingIds = db.FriendRequests
+            .Where(request => request.SenderId == player.Id)
+            .Select(request => request.FriendId)
             .ToHashSet();
 
         await connection.Send(new FriendsLoadedEvent(friendIds, incomingIds, outgoingIds));

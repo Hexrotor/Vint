@@ -1,5 +1,4 @@
-﻿using LinqToDB;
-using Serilog;
+﻿using Serilog;
 using Vint.Core.Database;
 using Vint.Core.Database.Models;
 using Vint.Core.ECS.Entities;
@@ -21,11 +20,7 @@ public class IntroduceUserByEmailEvent : IntroduceUserEvent {
 
         await using DbConnection db = new();
 
-        Player? player = await db
-            .Players
-            .LoadWith(player => player.Modules)
-            .LoadWith(player => player.DiscordLink)
-            .SingleOrDefaultAsync(player => player.Email == Email);
+        Player? player = await db.GetSelfPlayerByEmail(Email);
 
         if (player == null) {
             connection.Player = null!;

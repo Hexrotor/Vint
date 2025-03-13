@@ -6,5 +6,5 @@ namespace Vint.Core.ECS.Events.User.Friends;
 public class SortedFriendsIdsWithNicknamesLoadedEvent(
     Dictionary<long, string> friends
 ) : IEvent {
-    public Dictionary<long, string> FriendsIdsAndNicknames { get; private set; } = friends;
+    public Dictionary<long, string> FriendsIdsAndNicknames { get; } = friends;
 }
