@@ -106,6 +106,6 @@ file class RelationComparer(
         int statusComparison = getStatus(y.UserId).CompareTo(getStatus(x.UserId));
         return statusComparison != 0
             ? statusComparison
-            : string.Compare(x.Username, y.Username, StringComparison.Ordinal);
+            : string.Compare(x.Username, y.Username, StringComparison.OrdinalIgnoreCase);
     }
 }

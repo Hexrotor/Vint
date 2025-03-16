@@ -47,6 +47,6 @@ file class FriendComparer(
         int statusComparison = getStatus(y.Key).CompareTo(getStatus(x.Key));
         return statusComparison != 0
             ? statusComparison
-            : string.Compare(x.Value, y.Value, StringComparison.Ordinal);
+            : string.Compare(x.Value, y.Value, StringComparison.OrdinalIgnoreCase);
     }
 }
