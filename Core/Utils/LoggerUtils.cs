@@ -1,5 +1,6 @@
 ﻿using System.Collections.Frozen;
 using System.Net;
+using EmbedIO;
 using JetBrains.Annotations;
 using Serilog;
 using Serilog.Core;
@@ -59,7 +60,7 @@ public static class LoggerUtils {
             .CreateLogger();
 
         Swan.Logging.Logger.UnregisterLogger<ConsoleLogger>();
-        Swan.Logging.Logger.RegisterLogger<SerilogLogger>();
+        //Swan.Logging.Logger.RegisterLogger<SerilogLogger>();
 
         Log.Logger.ForType(typeof(LoggerUtils)).Information("Logger initialized");
     }
@@ -72,6 +73,15 @@ public static class LoggerUtils {
 
     public static ILogger WithEndPoint(this ILogger logger, IPEndPoint endPoint) =>
         logger.ForContext("SessionEndpoint", endPoint);
+
+    public static ILogger WithEndPoint(this ILogger logger, IHttpRequest request) {
+        string? ip = request.Headers["X-Real-IP"];
+
+        if (string.IsNullOrWhiteSpace(ip) || !IPEndPoint.TryParse(ip, out IPEndPoint? endPoint))
+            endPoint = request.RemoteEndPoint;
+
+        return logger.ForContext("SessionEndpoint", endPoint);
+    }
 
     // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
     public static ILogger WithPlayer(this ILogger logger, SocketPlayerConnection player) =>

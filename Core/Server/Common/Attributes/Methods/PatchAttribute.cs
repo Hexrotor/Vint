@@ -2,10 +2,10 @@ using EmbedIO;
 using EmbedIO.Routing;
 using JetBrains.Annotations;
 
-namespace Vint.Core.Server.API.Attributes.Methods;
+namespace Vint.Core.Server.Common.Attributes.Methods;
 
 [MeansImplicitUse(ImplicitUseKindFlags.Access)]
-public class AnyAttribute(
+public class PatchAttribute(
     string route,
     bool isBaseRoute = false
-) : RouteAttribute(HttpVerbs.Any, route, isBaseRoute);
+) : RouteAttribute(HttpVerbs.Patch, route, isBaseRoute);

@@ -1,12 +1,12 @@
 using EmbedIO;
 using EmbedIO.WebApi;
 using Newtonsoft.Json;
-using Vint.Core.Server.API.Serialization;
+using Vint.Core.Server.Common.Serialization;
 
-namespace Vint.Core.Server.API.Attributes.Deserialization;
+namespace Vint.Core.Server.Common.Attributes.Deserialization;
 
 [AttributeUsage(AttributeTargets.Parameter)]
-public class FromBodyAttribute : Attribute, IRequestDataAttribute<WebApiController> {
+public class FromBodyAsJsonAttribute : Attribute, IRequestDataAttribute<WebApiController> {
     static JsonSerializerSettings Settings { get; } = new() {
         MissingMemberHandling = MissingMemberHandling.Error,
         ContractResolver = new RequiredFieldsContractResolver(),

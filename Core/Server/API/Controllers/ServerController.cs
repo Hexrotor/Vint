@@ -3,8 +3,8 @@ using EmbedIO.WebApi;
 using Vint.Core.Battle.Lobby;
 using Vint.Core.Config;
 using Vint.Core.ECS.Enums;
-using Vint.Core.Server.API.Attributes.Methods;
 using Vint.Core.Server.API.DTO.Server;
+using Vint.Core.Server.Common.Attributes.Methods;
 using Vint.Core.Server.Game;
 
 namespace Vint.Core.Server.API.Controllers;

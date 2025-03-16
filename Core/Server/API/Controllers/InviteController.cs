@@ -3,15 +3,15 @@ using EmbedIO.WebApi;
 using LinqToDB;
 using Vint.Core.Database;
 using Vint.Core.Database.Models;
-using Vint.Core.Server.API.Attributes.Deserialization;
-using Vint.Core.Server.API.Attributes.Methods;
 using Vint.Core.Server.API.DTO.Invite;
+using Vint.Core.Server.Common.Attributes.Deserialization;
+using Vint.Core.Server.Common.Attributes.Methods;
 
 namespace Vint.Core.Server.API.Controllers;
 
 public class InviteController : WebApiController {
     [Post("/")]
-    public async Task<Invite> CreateInvite([FromBody] InviteDTO inviteDTO) {
+    public async Task<Invite> CreateInvite([FromBodyAsJson] InviteDTO inviteDTO) {
         await using DbConnection db = new();
         Invite? invite = await db.Invites.SingleOrDefaultAsync(invite => invite.Code == inviteDTO.Code);
 

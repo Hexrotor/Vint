@@ -2,10 +2,10 @@ using EmbedIO;
 using EmbedIO.Routing;
 using JetBrains.Annotations;
 
-namespace Vint.Core.Server.API.Attributes.Methods;
+namespace Vint.Core.Server.Common.Attributes.Methods;
 
 [MeansImplicitUse(ImplicitUseKindFlags.Access)]
-public class HeadAttribute(
+public class PutAttribute(
     string route,
     bool isBaseRoute = false
-) : RouteAttribute(HttpVerbs.Head, route, isBaseRoute);
+) : RouteAttribute(HttpVerbs.Put, route, isBaseRoute);

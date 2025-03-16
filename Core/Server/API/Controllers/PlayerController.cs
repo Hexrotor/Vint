@@ -5,9 +5,9 @@ using Vint.Core.Battle.Player;
 using Vint.Core.Database;
 using Vint.Core.Database.Models;
 using Vint.Core.ECS.Entities;
-using Vint.Core.Server.API.Attributes.Deserialization;
-using Vint.Core.Server.API.Attributes.Methods;
 using Vint.Core.Server.API.DTO.Player;
+using Vint.Core.Server.Common.Attributes.Deserialization;
+using Vint.Core.Server.Common.Attributes.Methods;
 using Vint.Core.Server.Game;
 using Vint.Core.Utils;
 
@@ -48,7 +48,7 @@ public class PlayerController(
     }
 
     [Post("/{id}/dmsg")]
-    public async Task DisplayMessage(long playerId, [FromBody] string message) {
+    public async Task DisplayMessage(long playerId, [FromBodyAsJson] string message) {
         if (playerId == -1) {
             foreach (IPlayerConnection connection in server.PlayerConnections.Values)
                 await connection.DisplayMessage(message);
@@ -92,7 +92,7 @@ public class PlayerController(
     }
 
     [Post("/{id}/kick")]
-    public async Task KickPlayer(long id, [FromBody] string reason) {
+    public async Task KickPlayer(long id, [FromBodyAsJson] string reason) {
         IPlayerConnection? targetConnection = server.PlayerConnections.Values
             .Where(conn => conn.IsLoggedIn)
             .SingleOrDefault(conn => conn.Player.Id == id);
@@ -107,7 +107,7 @@ public class PlayerController(
     }
 
     [Post("/{id}/warn")]
-    public async Task WarnPlayer(long id, [FromBody] PunishDTO punish) {
+    public async Task WarnPlayer(long id, [FromBodyAsJson] PunishDTO punish) {
         IPlayerConnection? targetConnection = server.PlayerConnections.Values
             .Where(conn => conn.IsLoggedIn)
             .SingleOrDefault(conn => conn.Player.Id == id);
@@ -149,7 +149,7 @@ public class PlayerController(
     }
 
     [Post("/{id}/mute")]
-    public async Task MutePlayer(long id, [FromBody] PunishDTO punish) {
+    public async Task MutePlayer(long id, [FromBodyAsJson] PunishDTO punish) {
         IPlayerConnection? targetConnection = server.PlayerConnections.Values
             .Where(conn => conn.IsLoggedIn)
             .SingleOrDefault(conn => conn.Player.Id == id);
@@ -191,7 +191,7 @@ public class PlayerController(
     }
 
     [Post("/{id}/ban")]
-    public async Task BanPlayer(long id, [FromBody] PunishDTO punish) {
+    public async Task BanPlayer(long id, [FromBodyAsJson] PunishDTO punish) {
         IPlayerConnection? targetConnection = server.PlayerConnections.Values
             .Where(conn => conn.IsLoggedIn)
             .SingleOrDefault(conn => conn.Player.Id == id);

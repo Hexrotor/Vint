@@ -4,7 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Vint.Core.Server.API.Controllers;
 using Vint.Core.Server.API.DTO;
-using Vint.Core.Server.API.Serialization;
+using Vint.Core.Server.Common.Middlewares;
+using Vint.Core.Server.Common.Serialization;
 using Vint.Core.Utils;
 using ILogger = Serilog.ILogger;
 
@@ -19,6 +20,7 @@ public class ApiServer {
         Server = new WebServer(options => options
                 .WithUrlPrefix($"http://localhost:{Port}/")
                 .WithMode(HttpListenerMode.EmbedIO))
+            .WithModule(new LoggingModule<ApiServer>("/"))
             .HandleHttpException(HandleHttpException)
             .HandleUnhandledException(HandleUnhandledException);
 
@@ -28,7 +30,7 @@ public class ApiServer {
         WithController<LobbyController>("/battles");
         WithController<ServerController>("/server");
 
-        Server.StateChanged += (_, e) => Logger.Debug("State changed: {Old} => {New}", e.OldState, e.NewState);
+        Server.StateChanged += (_, e) => Logger.Information("State changed: {Old} => {New}", e.OldState, e.NewState);
     }
 
     ILogger Logger { get; } = Log.Logger.ForType<ApiServer>();
@@ -53,6 +55,11 @@ public class ApiServer {
     }
 
     async Task HandleHttpException(IHttpContext context, IHttpException exception) {
+        ILogger logger = Logger.WithEndPoint(context.Request);
+
+        if (exception is Exception e) logger.Error(e, "HTTP exception");
+        else logger.Error("HTTP exception: {Message}", exception.Message);
+
         context.Response.StatusCode = exception.StatusCode;
         exception.PrepareResponse(context);
 
@@ -61,6 +68,8 @@ public class ApiServer {
     }
 
     async Task HandleUnhandledException(IHttpContext context, Exception exception) {
+        Logger.WithEndPoint(context.Request).Error(exception, "Unhandled exception");
+
         context.Response.StatusCode = 500;
 
         Type type = exception.GetType();

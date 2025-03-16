@@ -90,8 +90,6 @@ public class DiscordBot(
             .DisableDefaultLogging()
             .Build();
 
-        ConfigManager.NewLinkRequest = NewLinkRequest;
-
         Guild = await Client.GetGuildAsync(ConfigManager.Discord.GuildId);
         LinkedRole = await Guild.GetRoleAsync(ConfigManager.Discord.LinkedRoleId);
         ReportsChannel = await Client.GetChannelAsync(ConfigManager.Discord.ReportsChannelId);
@@ -155,7 +153,9 @@ public class DiscordBot(
         }
     }
 
-    async Task<bool> NewLinkRequest(string code, long playerId) {
+    public async Task<bool> NewLinkRequest(string code, long playerId) {
+        if (!IsStarted) return false;
+
         Dictionary<string, string> data = new() {
             { "grant_type", "authorization_code" },
             { "redirect_uri", ConfigManager.Discord.OAuth2Redirect },

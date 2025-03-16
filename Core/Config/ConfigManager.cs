@@ -32,7 +32,6 @@ using YamlDotNet.Serialization.NamingConventions;
 namespace Vint.Core.Config;
 
 public static class ConfigManager {
-    public static Func<string, long, Task<bool>>? NewLinkRequest { get; set; }
     public static ConcurrentHashSet<DiscordLinkRequest> DiscordLinkRequests { get; } = [];
 
     public static ServerConfig ServerConfig { get; private set; } = null!;

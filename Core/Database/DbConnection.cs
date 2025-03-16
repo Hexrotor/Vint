@@ -57,4 +57,5 @@ public sealed class DbConnection() : DataConnection(Schema) {
     public ITable<FriendRequest> FriendRequests => this.GetTable<FriendRequest>();
     public ITable<Friend> Friends => this.GetTable<Friend>();
     public ITable<Report> Reports => this.GetTable<Report>();
+    public ITable<ClientLog> ClientLogs => this.GetTable<ClientLog>();
 }

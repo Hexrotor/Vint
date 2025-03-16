@@ -6,9 +6,9 @@ using Vint.Core.Database;
 using Vint.Core.Database.Models;
 using Vint.Core.ECS.Components.Group;
 using Vint.Core.ECS.Entities;
-using Vint.Core.Server.API.Attributes.Deserialization;
-using Vint.Core.Server.API.Attributes.Methods;
 using Vint.Core.Server.API.DTO.PromoCode;
+using Vint.Core.Server.Common.Attributes.Deserialization;
+using Vint.Core.Server.Common.Attributes.Methods;
 using Vint.Core.Utils;
 
 namespace Vint.Core.Server.API.Controllers;
@@ -29,7 +29,7 @@ public class PromoCodeController : WebApiController {
     }
 
     [Post("/")]
-    public async Task<PromoCodeDetailDTO> CreatePromoCode([FromBody] PromoCodeRequestDTO createModel) {
+    public async Task<PromoCodeDetailDTO> CreatePromoCode([FromBodyAsJson] PromoCodeRequestDTO createModel) {
         createModel.AssertValid();
 
         await using DbConnection db = new();
@@ -80,7 +80,7 @@ public class PromoCodeController : WebApiController {
     }
 
     [Patch("/{id}")]
-    public async Task<PromoCodeDetailDTO> PatchPromoCode(long id, [FromBody] PromoCodeRequestDTO patchModel) {
+    public async Task<PromoCodeDetailDTO> PatchPromoCode(long id, [FromBodyAsJson] PromoCodeRequestDTO patchModel) {
         patchModel.AssertValid();
 
         await using DbConnection db = new();
@@ -137,7 +137,7 @@ public class PromoCodeController : WebApiController {
     }
 
     [Patch("/{id}/items")]
-    public async Task<PromoCodeDetailDTO> PatchItems(long id, [FromBody] PromoCodeItemDTO[] itemModels) {
+    public async Task<PromoCodeDetailDTO> PatchItems(long id, [FromBodyAsJson] PromoCodeItemDTO[] itemModels) {
         if (itemModels.HasDuplicatesBy(model => model.Id))
             throw HttpException.BadRequest("Collection contains duplicate items");
 

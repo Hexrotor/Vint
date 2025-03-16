@@ -2,7 +2,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Vint.Core.Server.API.Serialization;
+namespace Vint.Core.Server.Common.Serialization;
 
 public class RequiredFieldsContractResolver : DefaultContractResolver {
     protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization) {

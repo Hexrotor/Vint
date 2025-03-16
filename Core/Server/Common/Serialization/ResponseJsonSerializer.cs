@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
-namespace Vint.Core.Server.API.Serialization;
+namespace Vint.Core.Server.Common.Serialization;
 
 class ResponseJsonSerializer {
     public ResponseJsonSerializer() {

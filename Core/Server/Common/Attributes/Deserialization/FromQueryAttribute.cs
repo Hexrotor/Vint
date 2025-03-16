@@ -5,7 +5,7 @@ using EmbedIO.Utilities;
 using EmbedIO.WebApi;
 using Swan;
 
-namespace Vint.Core.Server.API.Attributes.Deserialization;
+namespace Vint.Core.Server.Common.Attributes.Deserialization;
 
 [AttributeUsage(AttributeTargets.Parameter)]
 public class FromQueryAttribute(

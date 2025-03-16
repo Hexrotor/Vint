@@ -1,3 +1,4 @@
+using EmbedIO.Net;
 using FluentMigrator.Runner;
 using FluentMigrator.Runner.Initialization;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,7 @@ abstract class Program {
             .ForType<Program>()
             .Information("Welcome to Vint!");
 
+        EndPointManager.UseIpv6 = false;
         DatabaseConfig.Initialize();
 
         await Task.WhenAll(

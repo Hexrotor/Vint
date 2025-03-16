@@ -13,15 +13,9 @@ public class BlueprintsContainer : Container {
         string configPath = MarketItem.TemplateAccessor!.ConfigPath!;
 
         Random = new WyRandom();
-
-        Info = ConfigManager.Blueprints[configPath
-            .Split('/')
-            .Last()];
-
-        TargetTierItemList = ConfigManager
-            .GetComponent<TargetTierComponent>(configPath)
-            .ItemList
-            ?.Select(id => GlobalEntities.AllMarketTemplateEntities.Single(entity => entity.Id == id))
+        Info = ConfigManager.Blueprints[configPath.Split('/').Last()];
+        TargetTierItemList = ConfigManager.GetComponent<TargetTierComponent>(configPath).ItemList?
+            .Select(id => GlobalEntities.AllMarketTemplateEntities.Single(entity => entity.Id == id))
             .ToList();
     }
 

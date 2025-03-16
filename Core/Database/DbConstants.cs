@@ -4,6 +4,7 @@ public static class DbConstants {
     #region Tables
     public const string Avatars = "Avatars";
     public const string Blocks = "Blocks";
+    public const string ClientLogs = "ClientLogs";
     public const string Containers = "Containers";
     public const string Covers = "Covers";
     public const string DailyBonusRedemptions = "DailyBonusRedemptions";
