@@ -1,4 +1,3 @@
-using Vint.Core.Battle.Player;
 using Vint.Core.Battle.Tank;
 using Vint.Core.Battle.Weapons;
 using Vint.Core.ECS.Entities;
@@ -46,7 +45,7 @@ public class KamikadzeEffect(
             minDamage,
             int.MaxValue);
 
-        await ShareTo(Tank.Tanker);
+        await ShareToAllPlayers();
         Schedule(TimeSpan.FromSeconds(10), DeactivateInternal);
     }
 
@@ -55,7 +54,7 @@ public class KamikadzeEffect(
             return;
 
         Tank.Effects.TryRemove(this);
-        await UnshareFrom(Tank.Tanker);
+        await UnshareFromAllPlayers();
 
         Entity = null;
     }
@@ -67,18 +66,4 @@ public class KamikadzeEffect(
 
     public override async Task DeactivateByEMP() =>
         await DeactivateInternal();
-
-    public override async Task ShareTo(BattlePlayer battlePlayer) {
-        if (battlePlayer is not Tanker tanker || tanker.Tank != Tank)
-            return;
-
-        await battlePlayer.Connection.Share(Entity!);
-    }
-
-    public override async Task UnshareFrom(BattlePlayer battlePlayer) {
-        if (battlePlayer is not Tanker tanker || tanker.Tank != Tank)
-            return;
-
-        await battlePlayer.Connection.Unshare(Entity!);
-    }
 }

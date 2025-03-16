@@ -34,16 +34,13 @@ public class KamikadzeModule : TriggerBattleModule, IDeathModule {
     public override async Task Activate() {
         if (!CanBeActivated) return;
 
-        KamikadzeEffect? effect = Tank
-            .Effects
+        KamikadzeEffect? effect = Tank.Effects
             .OfType<KamikadzeEffect>()
             .SingleOrDefault();
 
         if (effect != null) return;
 
         await base.Activate();
-
-        await GetEffect()
-            .Activate();
+        await GetEffect().Activate();
     }
 }

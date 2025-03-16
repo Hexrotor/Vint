@@ -12,18 +12,10 @@ moduleCooldownProperty:
     - 31667
     - 30000
 moduleEffectImpactProperty:
-  linearInterpolation: false
+  linearInterpolation: true
   upgradeLevel2Values:
-    - 4.00
-    - 4.22
-    - 4.44
-    - 4.67
-    - 4.89
-    - 5.11
-    - 5.33
-    - 5.56
-    - 5.78
-    - 6.00
+    - 8.00
+    - 12.00
 moduleEffectSplashRadiusProperty:
   linearInterpolation: false
   upgradeLevel2Values:
