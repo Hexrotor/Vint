@@ -19,12 +19,16 @@ public abstract class ModeHandler(
 
     public virtual Task Init() => Task.CompletedTask;
 
-    public virtual async Task PlayerJoined(BattlePlayer player) {
+    public virtual Task PrePlayerJoin(BattlePlayer player) => Task.CompletedTask;
+
+    public virtual async Task PostPlayerJoin(BattlePlayer player) {
         if (player is Tanker)
             await SortAllPlayers();
     }
 
-    public virtual async Task PlayerExited(BattlePlayer player) {
+    public virtual Task PrePlayerExit(BattlePlayer player) => Task.CompletedTask;
+
+    public virtual async Task PostPlayerExit(BattlePlayer player) {
         if (player is Tanker)
             await SortAllPlayers();
     }

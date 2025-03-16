@@ -153,12 +153,13 @@ public class Round : IDisposable {
     }
 
     public async Task RemoveTanker(Tanker tanker) {
+        await ModeHandler.PrePlayerExit(tanker);
         await RemovePlayerCommon(tanker);
 
         int count = Tankers.Count();
 
         BonusProcessor?.GoldProcessor.PlayersCountChanged(count);
-        await ModeHandler.PlayerExited(tanker);
+        await ModeHandler.PostPlayerExit(tanker);
 
         await TankerRemoved(tanker);
 
@@ -172,8 +173,9 @@ public class Round : IDisposable {
     }
 
     async Task AddPlayerCommon(BattlePlayer player) {
+        await ModeHandler.PrePlayerJoin(player);
         PlayersDict[player.Id] = player;
-        await ModeHandler.PlayerJoined(player);
+        await ModeHandler.PostPlayerJoin(player);
     }
 
     async Task RemovePlayerCommon(BattlePlayer player) {

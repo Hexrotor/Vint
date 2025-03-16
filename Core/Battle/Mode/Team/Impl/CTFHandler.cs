@@ -45,20 +45,29 @@ public class CTFHandler : TeamHandler {
             await flag.Init();
     }
 
-    public override async Task PlayerJoined(BattlePlayer player) {
-        await base.PlayerJoined(player);
+    public override async Task PostPlayerJoin(BattlePlayer player) {
+        await base.PostPlayerJoin(player);
         await player.Share(Flags.Values.Select(flag => flag.PedestalEntity));
 
         if (CanShareFlags)
             await player.Share(Flags.Values.Select(flag => flag.Entity));
     }
 
-    public override async Task PlayerExited(BattlePlayer player) {
-        await base.PlayerExited(player);
+    public override async Task PrePlayerExit(BattlePlayer player) {
+        await base.PrePlayerExit(player);
         await player.Unshare(Flags.Values.Select(flag => flag.PedestalEntity));
 
         if (CanShareFlags)
             await player.Unshare(Flags.Values.Select(flag => flag.Entity));
+
+        if (player is not Tanker tanker)
+            return;
+
+        foreach (Captured captured in Flags.Values
+                     .Select(flag => flag.StateManager.CurrentState)
+                     .OfType<Captured>()
+                     .Where(captured => captured.Carrier == tanker))
+            await captured.Drop(false);
     }
 
     public override async Task OnWarmUpEnded() {

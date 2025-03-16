@@ -41,8 +41,8 @@ public abstract class SoloHandler(
 
     public override async Task SortAllPlayers() => await SortPlayers(Round.Tankers);
 
-    public override async Task PlayerExited(BattlePlayer player) {
-        await base.PlayerExited(player);
+    public override async Task PostPlayerExit(BattlePlayer player) {
+        await base.PostPlayerExit(player);
 
         if (player is Tanker)
             await TryUpdateScore();

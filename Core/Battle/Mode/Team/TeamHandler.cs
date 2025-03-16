@@ -75,13 +75,13 @@ public abstract class TeamHandler : ModeHandler {
         await UpdateScore(TeamColor.Red, int.MinValue);
     }
 
-    public override async Task PlayerJoined(BattlePlayer player) {
-        await base.PlayerJoined(player);
+    public override async Task PostPlayerJoin(BattlePlayer player) {
+        await base.PostPlayerJoin(player);
         await player.Share(BlueTeam.Entity, RedTeam.Entity, ChatEntity);
     }
 
-    public override async Task PlayerExited(BattlePlayer player) {
-        await base.PlayerExited(player);
+    public override async Task PostPlayerExit(BattlePlayer player) {
+        await base.PostPlayerExit(player);
         await player.Unshare(BlueTeam.Entity, RedTeam.Entity, ChatEntity);
     }
 
