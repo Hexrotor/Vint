@@ -17,7 +17,7 @@ public class LoggingModule<TServer>(
         if (request == null!)
             return Task.CompletedTask;
 
-        BaseLogger.WithEndPoint(request).Information("{Method} {Url}", request.HttpMethod, request.Url);
+        BaseLogger.WithEndPoint(request).Information("{Method} {Url}", request.HttpMethod, request.RawUrl);
         return Task.CompletedTask;
     }
 }
