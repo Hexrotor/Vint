@@ -122,8 +122,8 @@ moduleVisualProperties:
     - name: "Impact"
       linearInterpolation: true
       upgradeLevel2Values:
-        - 4
-        - 6
+        - 8
+        - 12
       unit: hp
       format: 0.0
       spriteUID: 8bf5d2cc-2f2b-4f2a-8d6e-880bcdbf4844
