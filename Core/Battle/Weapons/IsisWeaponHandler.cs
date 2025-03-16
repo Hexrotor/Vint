@@ -41,7 +41,7 @@ public class IsisWeaponHandler : StreamWeaponHandler {
 
         if (targetTank.StateManager.CurrentState is not Active) return;
 
-        bool isEnemy = BattleTank.IsEnemy(targetTank);
+        bool isEnemy = BattleTank.IsEnemy(targetTank) && !BattleTank.IsSameTeam(targetTank);
         CalculatedDamage damage = await DamageCalculator.Calculate(BattleTank, targetTank, this, target, targetIndex);
 
         if (isEnemy) {
