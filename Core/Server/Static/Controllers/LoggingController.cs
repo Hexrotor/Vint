@@ -30,34 +30,35 @@ public class LoggingController(
             throw HttpException.BadRequest();
 
         string json = log[startIndex..];
-        ClientLogDTO dto;
 
         try {
-            dto = JsonConvert.DeserializeObject<ClientLogDTO>(json);
+            ClientLogDTO dto = JsonConvert.DeserializeObject<ClientLogDTO>(json);
+
+            ClientLog clientLog = new() {
+                Timestamp = DateTimeOffset.UtcNow,
+                LogLevel = dto.Level,
+                Username = dto.Username,
+                Hostname = dto.Host,
+                DeviceId = dto.DeviceId,
+                OperatingSystem = dto.OS,
+                ClientVersion = dto.ClientVersion,
+                InitUrl = dto.InitUrl,
+                SessionId = dto.SessionId,
+                Message = dto.Message,
+                ExceptionMessage = dto.Exception,
+                RawLog = log
+            };
+
+            await using (DbConnection db = new())
+                clientLog.Id = await db.InsertWithInt64IdentityAsync(clientLog);
+
+            await discordBot.SendReport($"New client log. Id: {clientLog.Id}", clientLog.Username);
         } catch (Exception e) {
             Log.Logger.ForType<LoggingController>().WithEndPoint(Request).Error(e, "Failed to deserialize client log");
-            dto = new ClientLogDTO();
+
+            string filePath = await SaveLogOnDisk(log);
+            await discordBot.SendReport($"New client log. Failed to deserialize. File: {filePath}", "");
         }
-
-        ClientLog clientLog = new() {
-            Timestamp = DateTimeOffset.UtcNow,
-            LogLevel = dto.Level,
-            Username = dto.Username,
-            Hostname = dto.Host,
-            DeviceId = dto.DeviceId,
-            OperatingSystem = dto.OS,
-            ClientVersion = dto.ClientVersion,
-            InitUrl = dto.InitUrl,
-            SessionId = dto.SessionId,
-            Message = dto.Message,
-            ExceptionMessage = dto.Exception,
-            RawLog = log
-        };
-
-        await using (DbConnection db = new())
-            clientLog.Id = await db.InsertWithInt64IdentityAsync(clientLog);
-
-        await discordBot.SendReport($"New client log. Id: {clientLog.Id}", clientLog.Username);
     }
 
     readonly record struct ClientLogDTO(
@@ -72,4 +73,16 @@ public class LoggingController(
         string Message = "",
         string Exception = ""
     );
+
+    static async Task<string> SaveLogOnDisk(string log) {
+        string path = Path.Combine(Directory.GetCurrentDirectory(), "ClientLogs");
+
+        if (!Directory.Exists(path))
+            Directory.CreateDirectory(path);
+
+        string fileName = $"{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss-fffffff}.log";
+        string filePath = Path.Combine(path, fileName);
+        await File.WriteAllTextAsync(filePath, log);
+        return filePath;
+    }
 }
