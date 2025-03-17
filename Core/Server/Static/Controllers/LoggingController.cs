@@ -2,10 +2,12 @@ using EmbedIO;
 using EmbedIO.WebApi;
 using LinqToDB;
 using Newtonsoft.Json;
+using Serilog;
 using Vint.Core.Database;
 using Vint.Core.Database.Models;
 using Vint.Core.Discord;
 using Vint.Core.Server.Common.Attributes.Methods;
+using Vint.Core.Utils;
 
 namespace Vint.Core.Server.Static.Controllers;
 
@@ -28,10 +30,14 @@ public class LoggingController(
             throw HttpException.BadRequest();
 
         string json = log[startIndex..];
-        ClientLogDTO dto = JsonConvert.DeserializeObject<ClientLogDTO>(json);
+        ClientLogDTO dto;
 
-        if (dto == default)
-            throw HttpException.BadRequest();
+        try {
+            dto = JsonConvert.DeserializeObject<ClientLogDTO>(json);
+        } catch (Exception e) {
+            Log.Logger.ForType<LoggingController>().WithEndPoint(Request).Error(e, "Failed to deserialize client log");
+            dto = default;
+        }
 
         ClientLog clientLog = new() {
             Timestamp = DateTimeOffset.UtcNow,
@@ -55,15 +61,15 @@ public class LoggingController(
     }
 
     readonly record struct ClientLogDTO(
-        ClientLogLevel Level,
-        string Username,
-        string Host,
-        string DeviceId,
-        string OS,
-        string ClientVersion,
-        string InitUrl,
-        long SessionId,
-        string Message,
-        string Exception
+        ClientLogLevel Level = ClientLogLevel.All,
+        string Username = "",
+        string Host = "",
+        string DeviceId = "",
+        string OS = "",
+        string ClientVersion = "",
+        string InitUrl = "",
+        long SessionId = 0,
+        string Message = "",
+        string Exception = ""
     );
 }
