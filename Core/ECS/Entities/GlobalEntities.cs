@@ -418,9 +418,7 @@ public static class GlobalEntities {
                                 slotEntity.AddComponent(new SlotUserItemInfoComponent(slot, behaviourType));
 
                                 if (slot == Slot.Slot7) {
-                                    IEntity gold = GetEntity("modules", "Gold")
-                                        .GetUserModule(connection);
-
+                                    IEntity gold = GetEntity("modules", "Gold").GetUserModule(connection);
                                     slotEntity.AddGroupComponent<ModuleGroupComponent>(gold);
                                 }
 

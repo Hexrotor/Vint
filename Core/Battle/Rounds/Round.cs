@@ -9,6 +9,7 @@ using Vint.Core.Battle.Damage.Processor;
 using Vint.Core.Battle.Mines;
 using Vint.Core.Battle.Mode;
 using Vint.Core.Battle.Mode.Team;
+using Vint.Core.Battle.Modules.Types.Base;
 using Vint.Core.Battle.Player;
 using Vint.Core.Battle.Properties;
 using Vint.Core.Battle.Tank;
@@ -141,6 +142,9 @@ public class Round : IDisposable {
         BonusProcessor?.GoldProcessor.PlayersCountChanged(tankersCount + 1);
 
         await tanker.Share(tanker.Tank.Entities); // share self entities after AddPlayerCommon because ModeHandler needs to share own entities first
+
+        foreach (BattleModule module in tanker.Tank.Modules)
+            await module.SwitchToBattleEntities();
     }
 
     public async Task AddSpectator(IPlayerConnection connection) {

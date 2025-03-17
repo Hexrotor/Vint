@@ -485,9 +485,6 @@ public class BattleTank : IDisposable {
         BattleModule gold = ModuleRegistry.Get(goldModuleEntity.Id);
         await gold.Init(this, goldSlotEntity, goldModuleEntity);
         Modules.Add(gold);
-
-        foreach (BattleModule module in Modules)
-            await module.SwitchToBattleEntities();
     }
 
     public override int GetHashCode() => Tanker.GetHashCode();

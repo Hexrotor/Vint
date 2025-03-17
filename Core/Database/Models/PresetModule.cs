@@ -36,7 +36,5 @@ public class PresetModule {
 
     public IEntity GetSlotEntity(IPlayerConnection connection) =>
         connection.SharedEntities.Single(entity => entity.TemplateAccessor?.Template is SlotUserItemTemplate &&
-                                                   entity.GetComponent<SlotUserItemInfoComponent>()
-                                                       .Slot ==
-                                                   Slot);
+                                                   entity.GetComponent<SlotUserItemInfoComponent>().Slot == Slot);
 }
