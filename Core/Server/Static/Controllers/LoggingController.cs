@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using EmbedIO;
 using EmbedIO.WebApi;
 using LinqToDB;
@@ -25,11 +26,13 @@ public class LoggingController(
             throw HttpException.BadRequest();
 
         int startIndex = log.LastIndexOf('{');
+        int endIndex = log.LastIndexOf('}');
+        int length = endIndex - startIndex + 1;
 
-        if (startIndex == -1)
+        if (startIndex == -1 || endIndex == -1 || length < 0)
             throw HttpException.BadRequest();
 
-        string json = log[startIndex..];
+        string json = log.Substring(startIndex, length);
 
         try {
             ClientLogDTO dto = JsonConvert.DeserializeObject<ClientLogDTO>(json);
