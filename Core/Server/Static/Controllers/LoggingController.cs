@@ -36,7 +36,7 @@ public class LoggingController(
             dto = JsonConvert.DeserializeObject<ClientLogDTO>(json);
         } catch (Exception e) {
             Log.Logger.ForType<LoggingController>().WithEndPoint(Request).Error(e, "Failed to deserialize client log");
-            dto = default;
+            dto = new ClientLogDTO();
         }
 
         ClientLog clientLog = new() {

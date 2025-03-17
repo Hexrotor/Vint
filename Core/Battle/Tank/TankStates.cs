@@ -113,8 +113,8 @@ public class SemiActive(
                 await StateManager.SetState(new Active(StateManager));
             }
         } else if (DateTimeOffset.UtcNow >= Timeout) {
-            await Entities.Tank.AddComponent<TankStateTimeOutComponent>();
             TimedOut = true;
+            await Entities.Tank.AddComponent<TankStateTimeOutComponent>();
         }
     }
 
